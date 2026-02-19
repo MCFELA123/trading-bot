@@ -1,4 +1,11 @@
-import MetaTrader5 as mt5
+try:
+    import MetaTrader5 as mt5
+    MT5_AVAILABLE = True
+except ImportError:
+    mt5 = None
+    MT5_AVAILABLE = False
+    print("WARNING: MetaTrader5 not available. MT5 features will be disabled.")
+
 import pandas as pd
 import numpy as np
 import threading

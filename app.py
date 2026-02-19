@@ -354,9 +354,12 @@ else:
     print("✅ No emergency stops to clear", flush=True)
 
 # ---------------- INITIALIZE MONGODB ----------------
-init_db()
-create_default_admin()  # Create admin/admin123 if not exists
-print("✅ Database initialized", flush=True)
+db_connected = init_db()
+if db_connected:
+    create_default_admin()  # Create admin/admin123 if not exists
+    print("✅ Database initialized", flush=True)
+else:
+    print("⚠️ Database not available - some features will be limited", flush=True)
 
 # ---------------- HELPERS ----------------
 def is_valid_email(email):

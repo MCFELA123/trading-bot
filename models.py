@@ -109,8 +109,12 @@ def init_db(app=None):
                 print(f"⏳ Retrying in {MONGO_RETRY_DELAY} seconds...")
                 time.sleep(MONGO_RETRY_DELAY)
             else:
-                print(f"❌ MongoDB connection failed after {MONGO_MAX_RETRIES} attempts")
-                print("💡 Check your internet connection or try switching to a different network/DNS")
+                print(f"⚠️ MongoDB connection failed after {MONGO_MAX_RETRIES} attempts")
+                print("⚠️ Running in degraded mode without database functionality")
+                print("💡 To enable database features, set MONGODB_URI environment variable")
+                # Don't exit - allow app to run without database
+                client = None
+                db = None
                 return False
     return False
 
@@ -340,6 +344,10 @@ def clear_trading_logs(username):
 def create_default_admin():
     """Create default admin user if it doesn't exist"""
     database = get_db()
+    if database is None:
+        print("⚠️ Database not available - skipping default admin creation")
+        return False
+    
     if not database.users.find_one({'username': 'admin'}):
         user_data = {
             'username': 'admin',

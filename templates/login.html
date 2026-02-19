@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - TradingBot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #0052ff;
+            --primary-dark: #0041cc;
+            --primary-light: #e8f0ff;
+            --danger: #ff3b30;
+            --danger-light: #ffebea;
+            --dark: #0a1628;
+            --gray-900: #1a2332;
+            --gray-700: #4a5568;
+            --gray-600: #5b6b8b;
+            --gray-500: #718096;
+            --gray-400: #a0aec0;
+            --gray-300: #cbd5e0;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Left Side - Branding */
+        .branding {
+            flex: 1;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--gray-900) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .branding::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,82,255,0.15) 0%, transparent 70%);
+        }
+
+        .branding-content {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+        }
+
+        .branding-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .branding-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .branding-logo-icon i {
+            color: white;
+            width: 26px;
+            height: 26px;
+        }
+
+        .branding-logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .branding h1 {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        .branding p {
+            font-size: 18px;
+            color: var(--gray-400);
+            line-height: 1.6;
+            margin-bottom: 48px;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0,82,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icon i {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .feature span {
+            font-size: 15px;
+            color: var(--gray-300);
+            font-weight: 500;
+        }
+
+        /* Right Side - Form */
+        .form-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: var(--white);
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 15px;
+            color: var(--gray-600);
+        }
+
+        .error-message {
+            width: 100%;
+            background: var(--danger-light);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-message i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--gray-400);
+        }
+
+        .btn-signin {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-signin:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 82, 255, 0.25);
+        }
+
+        .btn-signin i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 28px 0;
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider span {
+            padding: 0 16px;
+        }
+
+        .btn-mt5 {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-mt5:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-mt5 i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .branding {
+                display: none;
+            }
+            .form-side {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-side {
+                padding: 24px;
+            }
+            .form-header h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Branding Side -->
+    <div class="branding">
+        <div class="branding-content">
+            <div class="branding-logo">
+                <div class="branding-logo-icon">
+                    <i data-lucide="bot"></i>
+                </div>
+                <span class="branding-logo-text">TradingBot</span>
+            </div>
+
+            <h1>Automated Trading Made Simple</h1>
+            <p>Connect your MetaTrader 5 account and let our SMC strategy bot trade for you 24/7.</p>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <span>Smart Money Concepts Strategy</span>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <span>Risk Management Built-in</span>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <span>Real-time Position Monitoring</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Side -->
+    <div class="form-side">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to your account to continue</p>
+            </div>
+
+            {% if error %}
+            <div class="error-message">
+                <i data-lucide="alert-triangle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if success %}
+            <div class="success-message" style="background: #e8f9ef; border: 1px solid #00c853; color: #059669; padding: 14px 16px; border-radius: 12px; margin-bottom: 24px; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Enter your username or email" 
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password" 
+                        required
+                        autocomplete="current-password"
+                    >
+                    <div style="text-align: right; margin-top: 8px;">
+                        <a href="/forgot-password" style="font-size: 13px; color: #0052ff; text-decoration: none; font-weight: 500;">Forgot password?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-signin">
+                    <i data-lucide="log-in"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>or</span>
+            </div>
+
+            <div class="btn-mt5" style="opacity: 0.6; cursor: not-allowed; text-align: center;" onclick="alert('Please sign in first to connect your MT5 account')">
+                <i data-lucide="link"></i>
+                Connect MT5 Account
+            </div>
+
+            <div class="form-footer">
+                Don't have an account? <a href="/signup">Create one</a>
+                <br><br>
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

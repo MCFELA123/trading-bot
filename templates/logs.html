@@ -1,0 +1,2579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Logs - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --success: #0ecb81;
+            --success-light: rgba(14, 203, 129, 0.15);
+            --danger: #f6465d;
+            --danger-light: rgba(246, 70, 93, 0.15);
+            --warning: #f0b90b;
+            --warning-light: rgba(240, 185, 11, 0.15);
+            --dark: #0b0e11;
+            --gray-900: #121318;
+            --gray-800: #1e222d;
+            --gray-700: #2a2e39;
+            --gray-600: #363a45;
+            --gray-500: #848e9c;
+            --gray-400: #b7bdc6;
+            --gray-300: #d1d4dc;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #2a2e39;
+            --card-bg: #1e222d;
+            --sidebar-bg: #0b0e11;
+            --main-bg: #131722;
+            --text-primary: #ffffff;
+            --text-secondary: #b7bdc6;
+            --text-muted: #848e9c;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="light"] {
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --main-bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+
+        [data-theme="light"] .stat-info h3 { color: #0f172a; }
+        [data-theme="light"] .stat-info p { color: #64748b; }
+        [data-theme="light"] .logs-header h2 { color: #0f172a; }
+        [data-theme="light"] .logs-table td { color: #334155; }
+        [data-theme="light"] .logs-table th { color: #64748b; background: #f1f5f9; }
+        [data-theme="light"] .logs-table tr:hover { background: #f8fafc; }
+        [data-theme="light"] .message-text { color: #334155; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Sidebar - Always dark */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #0b0e11;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+
+        /* Collapsed Sidebar (Desktop) */
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 24px 8px;
+        }
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-section-title,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .user-card {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        .main.sidebar-collapsed {
+            margin-left: 70px;
+        }
+
+        /* Sidebar Collapse Button (Desktop) */
+        .sidebar-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .sidebar-collapse-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+        .sidebar-collapse-btn i {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Hamburger Menu Button */
+        .menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+        .menu-toggle:hover {
+            background: var(--gray-700);
+        }
+        .menu-toggle i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sidebar Close Button (mobile) */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sidebar-close i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i {
+            color: white;
+            width: 22px;
+            height: 22px;
+        }
+
+        .sidebar-logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #363a45; border-radius: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #848e9c;
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+            background: var(--main-bg);
+            transition: background 0.3s, margin-left 0.3s;
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                height: 100vh !important;
+                width: 280px !important;
+                transform: translateX(-100%);
+                box-shadow: none;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar.collapsed {
+                width: 280px !important;
+            }
+            .sidebar-collapse-btn {
+                display: none !important;
+            }
+            .sidebar-close {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: flex !important;
+            }
+            .main, .main.sidebar-collapsed {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85vw !important;
+                max-width: 300px !important;
+                padding: 20px 12px;
+            }
+            .header {
+                padding: 0 16px;
+                height: 64px;
+            }
+            .page-title {
+                font-size: 16px;
+            }
+            .theme-toggle-label {
+                display: none;
+            }
+            .theme-toggle {
+                padding: 8px;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn i {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-secondary {
+            background: var(--gray-700);
+            border: 1px solid var(--border);
+            color: var(--gray-400);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-600);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e5394f;
+        }
+
+        /* Content */
+        .logs-content {
+            padding: 24px;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--gray-600);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            width: 26px;
+            height: 26px;
+        }
+
+        .stat-icon.trades {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.buy {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .stat-icon.sell {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .stat-icon.signals {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--white);
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .stat-info p {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        /* Logs Card */
+        .logs-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .logs-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--gray-800);
+        }
+
+        .logs-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logs-header-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logs-header-icon i {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .logs-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .logs-count {
+            padding: 6px 14px;
+            background: var(--gray-700);
+            color: var(--gray-400);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Logs Table */
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .logs-table th {
+            background: var(--gray-700);
+            padding: 14px 24px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .logs-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--gray-400);
+        }
+
+        .logs-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .logs-table tbody tr:hover td {
+            background: var(--gray-700);
+        }
+
+        /* Log Type Badge */
+        .log-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .log-type i {
+            width: 14px;
+            height: 14px;
+        }
+
+        .log-type.trade {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .log-type.close {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .log-type.bot {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .log-type.signal {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .log-type.error {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .log-type.info {
+            background: var(--gray-700);
+            color: var(--gray-400);
+        }
+
+        /* Trade Direction */
+        .trade-direction {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .trade-direction.buy {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .trade-direction.sell {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        /* Log Details */
+        .log-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .log-detail {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .log-detail span {
+            font-weight: 600;
+            color: var(--gray-300);
+        }
+
+        .status-success {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .status-failed {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        /* Trade History Table */
+        .history-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(14, 203, 129, 0.05) 100%);
+        }
+
+        .history-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-header-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-header-icon i {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .history-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .history-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-period-select {
+            padding: 8px 14px;
+            background: var(--gray-700);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .history-period-select option {
+            background: var(--gray-700);
+        }
+
+        .history-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        .history-table th {
+            background: var(--gray-700);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .history-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .history-table tbody tr:hover td {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .trade-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .trade-type-badge.buy {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .trade-type-badge.sell {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .trade-type-badge i {
+            width: 12px;
+            height: 12px;
+        }
+
+        .profit-value {
+            font-weight: 600;
+        }
+
+        .profit-value.positive {
+            color: var(--success);
+        }
+
+        .profit-value.negative {
+            color: var(--danger);
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+        }
+
+        .history-empty i {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .history-stats {
+            display: flex;
+            gap: 24px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--gray-700);
+        }
+
+        .history-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .history-stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        [data-theme="light"] .history-header h2 { color: #0f172a; }
+        [data-theme="light"] .history-table th { background: #f1f5f9; color: #64748b; }
+        [data-theme="light"] .history-table td { color: #334155; }
+        [data-theme="light"] .history-table tbody tr:hover td { background: #f8fafc; }
+        [data-theme="light"] .history-period-select { background: #ffffff; border-color: #e2e8f0; color: #0f172a; }
+        [data-theme="light"] .history-stats { background: #f1f5f9; }
+
+        /* Empty State */
+        .empty-state {
+            padding: 80px 24px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gray-700);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .empty-icon i {
+            width: 40px;
+            height: 40px;
+            color: var(--gray-500);
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+
+        .empty-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .empty-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .empty-btn i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logs-content {
+                padding: 16px;
+            }
+            .header {
+                padding: 0 16px;
+            }
+            .logs-table th,
+            .logs-table td {
+                padding: 12px 16px;
+            }
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+            .logs-table th:nth-child(3),
+            .logs-table td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        /* Auto-refresh indicator */
+        .refresh-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Live Badge */
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--success-light);
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        /* Forex Charts Section */
+        .charts-section {
+            margin-bottom: 24px;
+        }
+
+        .charts-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .charts-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .charts-header-left h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .charts-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeframe-btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeframe-btn:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+        .timeframe-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chart-symbol-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart-symbol {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .chart-price {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .chart-current-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .chart-price-change {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .chart-price-change.up {
+            color: #4ade80;
+        }
+
+        .chart-price-change.down {
+            color: #f87171;
+        }
+
+        .chart-container {
+            height: 280px;
+            background: #ffffff;
+        }
+
+        .chart-footer {
+            padding: 10px 18px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-position {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--gray-600);
+        }
+
+        .chart-position-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .chart-position-badge.buy {
+            background: rgba(34, 197, 94, 0.15);
+            color: #16a34a;
+        }
+
+        .chart-position-badge.sell {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+        }
+
+        .chart-volume {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .no-chart-data {
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            color: var(--gray-500);
+        }
+
+        .no-chart-data i {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* Live Trading Chat */
+        .live-chat-card {
+            width: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .live-chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .live-chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: live-pulse 1.5s infinite;
+        }
+
+        @keyframes live-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+            }
+        }
+
+        .live-chat-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .live-chat-header .subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .live-chat-body {
+            height: 350px;
+            overflow-y: auto;
+            padding: 16px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .live-chat-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .live-chat-body::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .live-chat-body::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.bot {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .chat-avatar.buy {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .chat-avatar.sell {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .chat-avatar.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .chat-avatar.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .chat-avatar.news {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .chat-avatar i {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+
+        .chat-content {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chat-content.buy {
+            border-left: 3px solid #10b981;
+        }
+
+        .chat-content.sell {
+            border-left: 3px solid #ef4444;
+        }
+
+        .chat-content.bot {
+            border-left: 3px solid #667eea;
+        }
+
+        .chat-content.news {
+            border-left: 3px solid #f97316;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .chat-sender {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .chat-text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.5;
+        }
+
+        .chat-text .highlight {
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .chat-text .success {
+            color: #4ade80;
+        }
+
+        .chat-text .danger {
+            color: #f87171;
+        }
+
+        .chat-text .warning {
+            color: #fbbf24;
+        }
+
+        .chat-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chat-detail-item {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .chat-detail-item span {
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .no-messages i {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close" title="Close Menu">
+            <i data-lucide="x"></i>
+        </button>
+        <a href="/" class="sidebar-logo" style="text-decoration: none;">
+            <div class="sidebar-logo-icon">
+                <i data-lucide="bot"></i>
+            </div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">
+            <i data-lucide="chevrons-left"></i>
+            <span>Collapse</span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/logs" class="nav-item active">
+                    <i data-lucide="file-text"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/charts" class="nav-item">
+                    <i data-lucide="candlestick-chart"></i>
+                    <span>Charts</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item">
+                    <i data-lucide="brain"></i>
+                    <span>AI Tools</span>
+                </a>
+                <a href="/signals" class="nav-item">
+                    <i data-lucide="target"></i>
+                    <span>Trade Signals</span>
+                </a>
+                <a href="/news" class="nav-item">
+                    <i data-lucide="newspaper"></i>
+                    <span>News & Events</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item">
+                    <i data-lucide="user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/connect_mt5" class="nav-item">
+                    <i data-lucide="link"></i>
+                    <span>MT5 Connection</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ session['user'][0]|upper if session['user'] else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ session['user'] }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-toggle" id="menu-toggle" title="Open Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 class="page-title">Trading Logs</h1>
+            </div>
+            <div class="header-right">
+                <div class="refresh-indicator">
+                    <div class="refresh-dot"></div>
+                    <span>Auto-refresh: 10s</span>
+                </div>
+                <a href="/clear_logs" class="btn btn-danger" onclick="return confirm('Are you sure you want to clear all logs?')">
+                    <i data-lucide="trash-2"></i>
+                    Clear Logs
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    <i data-lucide="arrow-left"></i>
+                    Dashboard
+                </a>
+            </div>
+        </header>
+
+        <div class="logs-content">
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon trades">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-logs">{{ logs|length }}</h3>
+                        <p>Total Logs</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon buy">
+                        <i data-lucide="trending-up"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="buy-trades">0</h3>
+                        <p>Buy Trades</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon sell">
+                        <i data-lucide="trending-down"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="sell-trades">0</h3>
+                        <p>Sell Trades</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon signals">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="bot-events">0</h3>
+                        <p>Bot Events</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trade History Section -->
+            <div class="history-card">
+                <div class="history-header">
+                    <div class="history-header-left">
+                        <div class="history-header-icon">
+                            <i data-lucide="history"></i>
+                        </div>
+                        <h2>📊 Trade History</h2>
+                    </div>
+                    <div class="history-controls">
+                        <select id="history-period" class="history-period-select">
+                            <option value="1">Last 1 Day</option>
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                            <option value="365">Last Year</option>
+                        </select>
+                        <button id="refresh-history" class="btn btn-secondary" style="padding: 8px 14px;">
+                            <i data-lucide="refresh-cw"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="history-table-wrapper">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Symbol</th>
+                                <th>Ticket</th>
+                                <th>Type</th>
+                                <th>Volume</th>
+                                <th>Entry Price</th>
+                                <th>Exit Price</th>
+                                <th>SL</th>
+                                <th>TP</th>
+                                <th>Profit/Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            <tr>
+                                <td colspan="10" class="history-empty">
+                                    <i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i>
+                                    <p>Loading trade history...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="history-stats" id="history-stats" style="display: none;">
+                    <div class="history-stat">
+                        <span class="history-stat-label">Total Trades</span>
+                        <span class="history-stat-value" id="history-total">0</span>
+                    </div>
+                    <div class="history-stat">
+                        <span class="history-stat-label">Profitable</span>
+                        <span class="history-stat-value" id="history-wins" style="color: var(--success);">0</span>
+                    </div>
+                    <div class="history-stat">
+                        <span class="history-stat-label">Loss</span>
+                        <span class="history-stat-value" id="history-losses" style="color: var(--danger);">0</span>
+                    </div>
+                    <div class="history-stat">
+                        <span class="history-stat-label">Win Rate</span>
+                        <span class="history-stat-value" id="history-winrate">0%</span>
+                    </div>
+                    <div class="history-stat">
+                        <span class="history-stat-label">Total P&L</span>
+                        <span class="history-stat-value" id="history-pnl">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Trading Chat -->
+            <div class="live-chat-card">
+                <div class="live-chat-header">
+                    <div class="live-chat-header-left">
+                        <div class="live-indicator">
+                            <div class="live-dot"></div>
+                        </div>
+                        <div>
+                            <h2>💬 Live Trading Activity</h2>
+                            <span class="subtitle">Real-time bot updates and trade notifications</span>
+                        </div>
+                    </div>
+                    <button id="clear-chat" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;">
+                        Clear Chat
+                    </button>
+                </div>
+                <div class="live-chat-body" id="live-chat-body">
+                    <div class="no-messages" id="no-messages">
+                        <i data-lucide="message-circle"></i>
+                        <p>Waiting for trading activity...</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Start the bot to see live updates</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Card -->
+            <div class="logs-card">
+                <div class="logs-header">
+                    <div class="logs-header-left">
+                        <div class="logs-header-icon">
+                            <i data-lucide="scroll-text"></i>
+                        </div>
+                        <h2>Activity Log</h2>
+                    </div>
+                    <span class="logs-count" id="logs-count">{{ logs|length }} entries</span>
+                </div>
+
+                {% if logs and logs|length > 0 %}
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Message</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body">
+                        {% for log in logs %}
+                        <tr>
+                            <td style="white-space: nowrap; color: var(--gray-500); font-size: 13px;">
+                                {{ log.time }}
+                            </td>
+                            <td>
+                                <span class="log-type {{ log.type }}">
+                                    {% if log.type == 'trade' %}
+                                    <i data-lucide="bar-chart-2"></i>
+                                    Trade
+                                    {% elif log.type == 'close' %}
+                                    <i data-lucide="check-circle"></i>
+                                    Closed
+                                    {% elif log.type == 'bot' %}
+                                    <i data-lucide="bot"></i>
+                                    Bot
+                                    {% elif log.type == 'signal' %}
+                                    <i data-lucide="zap"></i>
+                                    Signal
+                                    {% elif log.type == 'error' %}
+                                    <i data-lucide="alert-circle"></i>
+                                    Error
+                                    {% else %}
+                                    <i data-lucide="info"></i>
+                                    Info
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    {% if log.details and log.details.type %}
+                                    <span class="trade-direction {{ log.details.type|lower }}">
+                                        {% if log.details.type == 'BUY' %}
+                                        <i data-lucide="arrow-up-right" style="width:12px;height:12px;"></i>
+                                        {% else %}
+                                        <i data-lucide="arrow-down-right" style="width:12px;height:12px;"></i>
+                                        {% endif %}
+                                        {{ log.details.type }}
+                                    </span>
+                                    {% endif %}
+                                    {{ log.message }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if log.details %}
+                                <div class="log-details">
+                                    {% if log.details.symbol %}
+                                    <div class="log-detail">Symbol: <span>{{ log.details.symbol }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.profit is defined %}
+                                    <div class="log-detail">P&L: 
+                                        {% if log.details.profit >= 0 %}
+                                        <span style="color: #22c55e; font-weight: 600;">+${{ "%.2f"|format(log.details.profit) }}</span>
+                                        {% else %}
+                                        <span style="color: #ef4444; font-weight: 600;">-${{ "%.2f"|format(log.details.profit|abs) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% if log.details.price %}
+                                    <div class="log-detail">Price: <span>{{ "%.2f"|format(log.details.price) }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.lot %}
+                                    <div class="log-detail">Lot: <span>{{ log.details.lot }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.score %}
+                                    <div class="log-detail">Score: <span>{{ log.details.score }}/4</span></div>
+                                    {% endif %}
+                                    {% if log.details.trend %}
+                                    <div class="log-detail">Trend: <span>{{ log.details.trend }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.strategy %}
+                                    <div class="log-detail">Strategy: <span>{{ log.details.strategy }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.reason %}
+                                    <div class="log-detail">Reason: <span>{{ log.details.reason }}</span></div>
+                                    {% endif %}
+                                    {% if log.details.executed is defined %}
+                                    <div class="log-detail">Status: 
+                                        {% if log.details.executed %}
+                                        <span class="status-success">Executed</span>
+                                        {% else %}
+                                        <span class="status-failed">Failed</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i data-lucide="scroll-text"></i>
+                    </div>
+                    <h3 class="empty-title">No Trading Logs Yet</h3>
+                    <p class="empty-text">Start the trading bot to see activity logs here. All trades, signals, and bot events will be recorded.</p>
+                    <a href="/" class="empty-btn">
+                        <i data-lucide="play"></i>
+                        Go to Dashboard
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Responsive Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const mainContent = document.querySelector('.main');
+
+        // Desktop: Toggle collapsed state
+        function toggleSidebarCollapse() {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 1024) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', openSidebar);
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebar);
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        if (sidebarCollapseBtn) {
+            sidebarCollapseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebarCollapse();
+            });
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                closeSidebar();
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        // ===== Trade History Functions =====
+        function loadTradeHistory(days = 30) {
+            const tbody = document.getElementById('history-tbody');
+            const statsDiv = document.getElementById('history-stats');
+            
+            // Show loading
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="history-empty">
+                        <i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i>
+                        <p>Loading trade history...</p>
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+            
+            fetch(`/api/trade_history?days=${days}`)
+                .then(res => res.json())
+                .then(trades => {
+                    if (!trades || trades.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="10" class="history-empty">
+                                    <i data-lucide="inbox"></i>
+                                    <p>No trade history found</p>
+                                    <p style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Start trading to see your history here</p>
+                                </td>
+                            </tr>
+                        `;
+                        statsDiv.style.display = 'none';
+                        lucide.createIcons();
+                        return;
+                    }
+                    
+                    // Build table rows
+                    let html = '';
+                    let totalProfit = 0;
+                    let wins = 0;
+                    let losses = 0;
+                    
+                    trades.forEach(trade => {
+                        const profitClass = trade.profit >= 0 ? 'positive' : 'negative';
+                        const profitSign = trade.profit >= 0 ? '+' : '';
+                        const typeClass = trade.type.toLowerCase();
+                        const typeIcon = trade.type === 'BUY' ? 'arrow-up-right' : 'arrow-down-right';
+                        
+                        totalProfit += trade.profit;
+                        if (trade.profit >= 0) wins++;
+                        else losses++;
+                        
+                        html += `
+                            <tr>
+                                <td>${trade.time}</td>
+                                <td style="font-weight: 600; color: var(--text-primary);">${trade.symbol}</td>
+                                <td style="color: var(--text-muted); font-size: 12px;">#${trade.ticket}</td>
+                                <td>
+                                    <span class="trade-type-badge ${typeClass}">
+                                        <i data-lucide="${typeIcon}"></i>
+                                        ${trade.type}
+                                    </span>
+                                </td>
+                                <td>${trade.volume}</td>
+                                <td>${trade.entry_price}</td>
+                                <td>${trade.exit_price}</td>
+                                <td>${trade.sl || '-'}</td>
+                                <td>${trade.tp || '-'}</td>
+                                <td>
+                                    <span class="profit-value ${profitClass}">
+                                        ${profitSign}$${Math.abs(trade.profit).toFixed(2)}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tbody.innerHTML = html;
+                    
+                    // Update stats
+                    const total = wins + losses;
+                    const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
+                    const pnlClass = totalProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+                    const pnlSign = totalProfit >= 0 ? '+' : '-';
+                    
+                    document.getElementById('history-total').textContent = total;
+                    document.getElementById('history-wins').textContent = wins;
+                    document.getElementById('history-losses').textContent = losses;
+                    document.getElementById('history-winrate').textContent = winRate + '%';
+                    document.getElementById('history-pnl').textContent = `${pnlSign}$${Math.abs(totalProfit).toFixed(2)}`;
+                    document.getElementById('history-pnl').style.color = pnlClass;
+                    
+                    statsDiv.style.display = 'flex';
+                    lucide.createIcons();
+                })
+                .catch(err => {
+                    console.error('Error loading trade history:', err);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="history-empty">
+                                <i data-lucide="alert-circle"></i>
+                                <p>Failed to load trade history</p>
+                                <p style="font-size: 12px; margin-top: 8px; opacity: 0.7;">Check MT5 connection</p>
+                            </td>
+                        </tr>
+                    `;
+                    statsDiv.style.display = 'none';
+                    lucide.createIcons();
+                });
+        }
+        
+        // Load history on page load
+        loadTradeHistory(30);
+        
+        // Period selector
+        document.getElementById('history-period').addEventListener('change', function() {
+            loadTradeHistory(parseInt(this.value));
+        });
+        
+        // Refresh button
+        document.getElementById('refresh-history').addEventListener('click', function() {
+            const days = parseInt(document.getElementById('history-period').value);
+            loadTradeHistory(days);
+        });
+
+        // ===== Auto-refresh Trade History on Bot Status Change =====
+        let lastBotStatus = null;  // Track bot running state
+        let historyRefreshInterval = null;
+        
+        function checkBotStatusForHistory() {
+            fetch('/status')
+                .then(res => res.json())
+                .then(data => {
+                    const currentStatus = data.running;
+                    
+                    // If bot status changed, refresh trade history
+                    if (lastBotStatus !== null && lastBotStatus !== currentStatus) {
+                        console.log('Bot status changed, refreshing trade history...');
+                        const days = parseInt(document.getElementById('history-period').value);
+                        loadTradeHistory(days);
+                    }
+                    
+                    lastBotStatus = currentStatus;
+                })
+                .catch(err => {
+                    console.log('Could not fetch bot status');
+                });
+        }
+        
+        // Check bot status every 5 seconds for trade history refresh
+        setInterval(checkBotStatusForHistory, 5000);
+        
+        // Initial check
+        checkBotStatusForHistory();
+
+        // Store last seen log count to detect new entries
+        let lastLogCount = 0;
+        let chatMessages = [];
+        const MAX_CHAT_MESSAGES = 50;
+
+        // Format time for chat
+        function formatChatTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // Get avatar class and icon based on log type
+        function getAvatarInfo(log) {
+            if (log.details && log.details.type === 'BUY') {
+                return { class: 'buy', icon: 'trending-up' };
+            } else if (log.details && log.details.type === 'SELL') {
+                return { class: 'sell', icon: 'trending-down' };
+            } else if (log.type === 'bot') {
+                return { class: 'bot', icon: 'bot' };
+            } else if (log.type === 'error') {
+                return { class: 'warning', icon: 'alert-triangle' };
+            } else if (log.type === 'news' || (log.details && log.details.news_sentiment)) {
+                return { class: 'news', icon: 'newspaper' };
+            } else {
+                return { class: 'info', icon: 'info' };
+            }
+        }
+
+        // Get sender name
+        function getSenderName(log) {
+            if (log.type === 'close') {
+                const profit = log.details?.profit || 0;
+                return profit >= 0 ? '✅ Trade Closed (Profit)' : '❌ Trade Closed (Loss)';
+            }
+            if (log.details && log.details.type === 'BUY') return '🟢 BUY Signal';
+            if (log.details && log.details.type === 'SELL') return '🔴 SELL Signal';
+            if (log.type === 'bot') return '🤖 Trading Bot';
+            if (log.type === 'error') return '⚠️ Alert';
+            if (log.type === 'ai_learning') return '🧠 AI Learning';
+            return '📊 System';
+        }
+
+        // Format message text with highlights
+        function formatMessageText(log) {
+            let text = log.message || '';
+            
+            // Add trade details
+            if (log.details) {
+                if (log.details.symbol) {
+                    text = text.replace(log.details.symbol, `<span class="highlight">${log.details.symbol}</span>`);
+                }
+                if (log.details.price) {
+                    const priceStr = log.details.price.toFixed(2);
+                    text = text.replace(priceStr, `<span class="highlight">$${priceStr}</span>`);
+                }
+            }
+            
+            // Highlight keywords
+            text = text.replace(/started/gi, '<span class="success">started</span>');
+            text = text.replace(/stopped/gi, '<span class="danger">stopped</span>');
+            text = text.replace(/profit/gi, '<span class="success">profit</span>');
+            text = text.replace(/loss/gi, '<span class="danger">loss</span>');
+            
+            return text;
+        }
+
+        // Build details HTML
+        function buildDetailsHtml(log) {
+            if (!log.details) return '';
+            
+            let details = [];
+            
+            if (log.details.symbol) details.push(`Symbol: <span>${log.details.symbol}</span>`);
+            if (log.details.price) details.push(`Price: <span>$${log.details.price.toFixed(2)}</span>`);
+            if (log.details.lot) details.push(`Lot: <span>${log.details.lot}</span>`);
+            if (log.details.score) details.push(`Score: <span>${log.details.score}/7</span>`);
+            if (log.details.regime) details.push(`Regime: <span>${log.details.regime}</span>`);
+            if (log.details.entry_reason) details.push(`Entry: <span>${log.details.entry_reason}</span>`);
+            if (log.details.news_sentiment) details.push(`News: <span>${log.details.news_sentiment}</span>`);
+            if (log.details.sl) details.push(`SL: <span>${log.details.sl.toFixed(2)}</span>`);
+            if (log.details.tp) details.push(`TP: <span>${log.details.tp.toFixed(2)}</span>`);
+            
+            if (details.length === 0) return '';
+            
+            return `<div class="chat-details">${details.map(d => `<div class="chat-detail-item">${d}</div>`).join('')}</div>`;
+        }
+
+        // Add a message to chat
+        function addChatMessage(log) {
+            const chatBody = $('#live-chat-body');
+            $('#no-messages').hide();
+            
+            const avatarInfo = getAvatarInfo(log);
+            const contentClass = log.details?.type?.toLowerCase() || (log.type === 'bot' ? 'bot' : (log.details?.news_sentiment ? 'news' : ''));
+            
+            const messageHtml = `
+                <div class="chat-message">
+                    <div class="chat-avatar ${avatarInfo.class}">
+                        <i data-lucide="${avatarInfo.icon}"></i>
+                    </div>
+                    <div class="chat-content ${contentClass}">
+                        <div class="chat-header">
+                            <span class="chat-sender">${getSenderName(log)}</span>
+                            <span class="chat-time">${formatChatTime(log.time || new Date().toISOString())}</span>
+                        </div>
+                        <div class="chat-text">${formatMessageText(log)}</div>
+                        ${buildDetailsHtml(log)}
+                    </div>
+                </div>
+            `;
+            
+            chatBody.append(messageHtml);
+            lucide.createIcons();
+            
+            // Auto-scroll to bottom
+            chatBody.scrollTop(chatBody[0].scrollHeight);
+            
+            // Limit messages
+            const messages = chatBody.find('.chat-message');
+            if (messages.length > MAX_CHAT_MESSAGES) {
+                messages.first().remove();
+            }
+        }
+
+        // Clear chat
+        $('#clear-chat').click(function() {
+            $('#live-chat-body').html(`
+                <div class="no-messages" id="no-messages">
+                    <i data-lucide="message-circle"></i>
+                    <p>Chat cleared</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Waiting for new activity...</p>
+                </div>
+            `);
+            lucide.createIcons();
+            chatMessages = [];
+            lastLogCount = 0;
+        });
+
+        // Count stats function
+        function countStats(logs) {
+            let buyCount = 0, sellCount = 0, botCount = 0;
+            logs.forEach(function(log) {
+                if (log.details && log.details.type === 'BUY') buyCount++;
+                if (log.details && log.details.type === 'SELL') sellCount++;
+                if (log.type === 'bot') botCount++;
+            });
+            $('#buy-trades').text(buyCount);
+            $('#sell-trades').text(sellCount);
+            $('#bot-events').text(botCount);
+        }
+
+        // Fetch and update logs
+        function fetchLogs() {
+            $.get('/api/logs', function(data) {
+                if (data) {
+                    $('#total-logs').text(data.length);
+                    $('#logs-count').text(data.length + ' entries');
+                    countStats(data);
+                    
+                    // Check for new logs
+                    if (data.length > lastLogCount) {
+                        // Add only new logs to chat (most recent ones)
+                        const newLogs = data.slice(0, data.length - lastLogCount);
+                        newLogs.reverse().forEach(function(log) {
+                            addChatMessage(log);
+                        });
+                    }
+                    lastLogCount = data.length;
+                }
+            });
+        }
+
+        // Load initial logs
+        $(document).ready(function() {
+            $.get('/api/logs', function(data) {
+                if (data && data.length > 0) {
+                    countStats(data);
+                    lastLogCount = data.length;
+                    
+                    // Show last 20 logs in chat
+                    const recentLogs = data.slice(0, 20).reverse();
+                    recentLogs.forEach(function(log) {
+                        addChatMessage(log);
+                    });
+                }
+            });
+        });
+
+        // Auto-refresh logs every 3 seconds (faster for live feel)
+        setInterval(fetchLogs, 3000);
+
+        // ======== FOREX CHARTS ========
+        const chartSymbols = ['XAUUSD', 'EURUSD', 'GBPUSD', 'BTCUSD'];
+        let currentTimeframe = 'M5';
+        let charts = {};
+        let candleSeries = {};
+        let volumeSeries = {};
+        let positionLines = {};
+
+        // Chart colors (light theme)
+        const chartColors = {
+            background: '#ffffff',
+            textColor: '#333333',
+            gridColor: 'rgba(0, 0, 0, 0.08)',
+            upColor: '#22c55e',
+            downColor: '#ef4444',
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4444',
+            volumeUp: 'rgba(34, 197, 94, 0.5)',
+            volumeDown: 'rgba(239, 68, 68, 0.5)',
+        };
+
+        // Initialize a single chart
+        function initChart(symbol) {
+            const container = document.getElementById(`chart-${symbol}`);
+            if (!container) return;
+
+            // Clear previous chart
+            container.innerHTML = '';
+
+            const chart = LightweightCharts.createChart(container, {
+                width: container.clientWidth,
+                height: 280,
+                layout: {
+                    background: { type: 'solid', color: chartColors.background },
+                    textColor: chartColors.textColor,
+                },
+                grid: {
+                    vertLines: { color: chartColors.gridColor },
+                    horzLines: { color: chartColors.gridColor },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                    vertLine: {
+                        width: 1,
+                        color: 'rgba(255, 255, 255, 0.2)',
+                        style: LightweightCharts.LineStyle.Dashed,
+                    },
+                    horzLine: {
+                        width: 1,
+                        color: 'rgba(255, 255, 255, 0.2)',
+                        style: LightweightCharts.LineStyle.Dashed,
+                    },
+                },
+                rightPriceScale: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    scaleMargins: { top: 0.1, bottom: 0.2 },
+                },
+                timeScale: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+                handleScroll: { vertTouchDrag: false },
+            });
+
+            // Create candlestick series
+            const candlestick = chart.addCandlestickSeries({
+                upColor: chartColors.upColor,
+                downColor: chartColors.downColor,
+                borderUpColor: chartColors.upColor,
+                borderDownColor: chartColors.downColor,
+                wickUpColor: chartColors.wickUpColor,
+                wickDownColor: chartColors.wickDownColor,
+            });
+
+            // Create volume series
+            const volume = chart.addHistogramSeries({
+                color: chartColors.volumeUp,
+                priceFormat: { type: 'volume' },
+                priceScaleId: '',
+                scaleMargins: { top: 0.85, bottom: 0 },
+            });
+
+            charts[symbol] = chart;
+            candleSeries[symbol] = candlestick;
+            volumeSeries[symbol] = volume;
+
+            // Handle resize
+            new ResizeObserver(entries => {
+                if (entries.length === 0 || entries[0].target !== container) return;
+                const { width } = entries[0].contentRect;
+                chart.applyOptions({ width });
+            }).observe(container);
+        }
+
+        // Update chart with data
+        function updateChart(symbol, data) {
+            if (!candleSeries[symbol] || !data || !data.candles || data.candles.length === 0) {
+                $(`#chart-${symbol}`).html(`
+                    <div class="no-chart-data">
+                        <i data-lucide="bar-chart-2"></i>
+                        <p>No data for ${symbol}</p>
+                    </div>
+                `);
+                lucide.createIcons();
+                return;
+            }
+
+            // Format candles for Lightweight Charts
+            const candles = data.candles.map(c => ({
+                time: c.time,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+            }));
+
+            const volumes = data.candles.map(c => ({
+                time: c.time,
+                value: c.volume,
+                color: c.close >= c.open ? chartColors.volumeUp : chartColors.volumeDown,
+            }));
+
+            candleSeries[symbol].setData(candles);
+            volumeSeries[symbol].setData(volumes);
+
+            // Update price display
+            if (data.current_price) {
+                const lastCandle = candles[candles.length - 1];
+                const firstCandle = candles[0];
+                const change = lastCandle ? ((lastCandle.close - firstCandle.open) / firstCandle.open * 100).toFixed(2) : 0;
+                const isUp = change >= 0;
+
+                $(`#price-${symbol}`).text(data.current_price.toFixed(symbol.includes('USD') && !symbol.includes('XAU') && !symbol.includes('BTC') ? 5 : 2));
+                $(`#change-${symbol}`)
+                    .text(`${isUp ? '+' : ''}${change}%`)
+                    .removeClass('up down')
+                    .addClass(isUp ? 'up' : 'down');
+            }
+
+            // Update volume
+            if (data.candles.length > 0) {
+                const lastVol = data.candles[data.candles.length - 1].volume;
+                $(`#volume-${symbol}`).text(`Vol: ${formatVolume(lastVol)}`);
+            }
+
+            // Update positions
+            updatePositionDisplay(symbol, data.positions || []);
+
+            // Fit content
+            charts[symbol].timeScale().fitContent();
+        }
+
+        // Format volume number
+        function formatVolume(vol) {
+            if (vol >= 1000000) return (vol / 1000000).toFixed(1) + 'M';
+            if (vol >= 1000) return (vol / 1000).toFixed(1) + 'K';
+            return vol.toFixed(0);
+        }
+
+        // Update position display
+        function updatePositionDisplay(symbol, positions) {
+            const posContainer = $(`#position-${symbol}`);
+            
+            // Improved symbol matching - handle variations like XAUUSD, XAUUSD, xauusd, etc.
+            const baseSymbol = symbol.replace(/m$/i, '').toUpperCase();
+            const symbolPositions = positions.filter(p => {
+                const posSymbol = (p.symbol || '').replace(/m$/i, '').toUpperCase();
+                return posSymbol === baseSymbol;
+            });
+
+            if (symbolPositions.length === 0) {
+                posContainer.html('<span>No open position</span>');
+                // Clear any existing price lines
+                if (positionLines[symbol]) {
+                    positionLines[symbol].forEach(line => {
+                        try { candleSeries[symbol].removePriceLine(line); } catch(e) {}
+                    });
+                    positionLines[symbol] = [];
+                }
+                return;
+            }
+
+            const pos = symbolPositions[0];
+            const isProfit = pos.profit >= 0;
+            const typeClass = pos.type === 0 ? 'buy' : 'sell';
+            const typeName = pos.type === 0 ? 'BUY' : 'SELL';
+            const entryPrice = pos.price_open || pos.price || 0;
+            
+            // Format price based on symbol type
+            const priceDecimals = symbol.includes('XAU') || symbol.includes('BTC') ? 2 : 5;
+
+            posContainer.html(`
+                <span class="chart-position-badge ${typeClass}">${typeName}</span>
+                <span>${pos.volume} lots @ ${entryPrice.toFixed(priceDecimals)}</span>
+                <span style="color: ${isProfit ? '#4ade80' : '#f87171'}; font-weight: 600;">
+                    ${isProfit ? '+' : ''}$${pos.profit.toFixed(2)}
+                </span>
+            `);
+
+            // Add price lines for entry, SL, TP
+            if (charts[symbol] && candleSeries[symbol] && entryPrice > 0) {
+                // Remove old lines
+                if (positionLines[symbol]) {
+                    positionLines[symbol].forEach(line => {
+                        try { candleSeries[symbol].removePriceLine(line); } catch(e) {}
+                    });
+                }
+                positionLines[symbol] = [];
+
+                // Entry line
+                try {
+                    const entryLine = candleSeries[symbol].createPriceLine({
+                        price: entryPrice,
+                        color: typeClass === 'buy' ? '#22c55e' : '#ef4444',
+                        lineWidth: 2,
+                        lineStyle: LightweightCharts.LineStyle.Solid,
+                        axisLabelVisible: true,
+                        title: `Entry`,
+                    });
+                    positionLines[symbol].push(entryLine);
+                } catch(e) {
+                    console.log('Error creating entry line:', e);
+                }
+
+                // SL line
+                if (pos.sl && pos.sl > 0) {
+                    try {
+                        const slLine = candleSeries[symbol].createPriceLine({
+                            price: pos.sl,
+                            color: '#ef4444',
+                            lineWidth: 1,
+                            lineStyle: LightweightCharts.LineStyle.Dashed,
+                            axisLabelVisible: true,
+                            title: 'SL',
+                        });
+                        positionLines[symbol].push(slLine);
+                    } catch(e) {
+                        console.log('Error creating SL line:', e);
+                    }
+                }
+
+                // TP line
+                if (pos.tp && pos.tp > 0) {
+                    try {
+                        const tpLine = candleSeries[symbol].createPriceLine({
+                            price: pos.tp,
+                            color: '#22c55e',
+                            lineWidth: 1,
+                            lineStyle: LightweightCharts.LineStyle.Dashed,
+                            axisLabelVisible: true,
+                            title: 'TP',
+                        });
+                        positionLines[symbol].push(tpLine);
+                    } catch(e) {
+                        console.log('Error creating TP line:', e);
+                    }
+                }
+            }
+        }
+
+        // Fetch chart data for all symbols
+        function fetchAllCharts() {
+            const symbols = chartSymbols.join(',');
+            $.get(`/api/charts?symbols=${symbols}&timeframe=${currentTimeframe}&bars=150`, function(data) {
+                if (data && data.charts) {
+                    data.charts.forEach(chartData => {
+                        updateChart(chartData.symbol, chartData);
+                    });
+                }
+            }).fail(function() {
+                chartSymbols.forEach(symbol => {
+                    $(`#chart-${symbol}`).html(`
+                        <div class="no-chart-data">
+                            <i data-lucide="wifi-off"></i>
+                            <p>Unable to load chart</p>
+                        </div>
+                    `);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        // Initialize all charts on page load
+        $(document).ready(function() {
+            chartSymbols.forEach(symbol => initChart(symbol));
+            fetchAllCharts();
+        });
+
+        // Timeframe buttons
+        $('.timeframe-btn').click(function() {
+            $('.timeframe-btn').removeClass('active');
+            $(this).addClass('active');
+            currentTimeframe = $(this).data('tf');
+            
+            // Re-initialize and fetch
+            chartSymbols.forEach(symbol => initChart(symbol));
+            fetchAllCharts();
+        });
+
+        // Refresh button
+        $('#refresh-charts').click(function() {
+            $(this).find('i').addClass('spin');
+            fetchAllCharts();
+            setTimeout(() => $(this).find('i').removeClass('spin'), 1000);
+        });
+
+        // Auto-refresh charts every 10 seconds
+        setInterval(fetchAllCharts, 10000);
+
+        // Add spin animation
+        $('<style>.spin { animation: spin 1s linear infinite; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>').appendTo('head');
+
+        // Apply saved theme from dashboard
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>

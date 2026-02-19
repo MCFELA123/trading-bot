@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Signals - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --success: #0ecb81;
+            --success-light: rgba(14, 203, 129, 0.15);
+            --danger: #f6465d;
+            --danger-light: rgba(246, 70, 93, 0.15);
+            --warning: #f0b90b;
+            --warning-light: rgba(240, 185, 11, 0.15);
+            --dark: #0b0e11;
+            --gray-900: #121318;
+            --gray-800: #1e222d;
+            --gray-700: #2a2e39;
+            --gray-600: #363a45;
+            --gray-500: #848e9c;
+            --gray-400: #b7bdc6;
+            --gray-300: #d1d4dc;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #2a2e39;
+            --card-bg: #1e222d;
+            --main-bg: #131722;
+            --text-primary: #ffffff;
+            --text-secondary: #b7bdc6;
+            --text-muted: #848e9c;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="light"] {
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --main-bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+
+        [data-theme="light"] .card { background: #ffffff; }
+        [data-theme="light"] .page-title { color: #0f172a; }
+        [data-theme="light"] .header { background: #ffffff; border-bottom-color: #e2e8f0; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #0b0e11;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+
+        /* Collapsed Sidebar (Desktop) */
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 24px 8px;
+        }
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-section-title,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .user-card {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        .main.sidebar-collapsed {
+            margin-left: 70px;
+        }
+
+        /* Sidebar Collapse Button (Desktop) */
+        .sidebar-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .sidebar-collapse-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+        .sidebar-collapse-btn i {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+        .menu-toggle:hover { background: var(--gray-700); }
+        .menu-toggle i { width: 20px; height: 20px; }
+
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .sidebar-close:hover { background: rgba(255,255,255,0.2); }
+        .sidebar-close i { width: 18px; height: 18px; }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i { color: white; width: 22px; height: 22px; }
+        .sidebar-logo-text { font-size: 20px; font-weight: 700; color: #ffffff; }
+        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #363a45; border-radius: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #484d5b; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; flex-shrink: 0; }
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-name { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .user-role { font-size: 12px; color: #848e9c; }
+
+        .main { margin-left: 260px; min-height: 100vh; background: var(--main-bg); transition: background 0.3s; }
+
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .page-title { font-size: 20px; font-weight: 700; color: var(--text-primary); transition: color 0.3s; }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: var(--gray-700);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .content { padding: 32px; }
+
+        .card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                height: 100vh !important;
+                width: 280px !important;
+                transform: translateX(-100%);
+                box-shadow: none;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar.collapsed {
+                width: 280px !important;
+            }
+            .sidebar-collapse-btn {
+                display: none !important;
+            }
+            .sidebar-close {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: flex !important;
+            }
+            .main, .main.sidebar-collapsed {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85vw !important;
+                max-width: 300px !important;
+                padding: 20px 12px;
+            }
+            .header { padding: 0 16px; height: 64px; }
+            .page-title { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close" title="Close Menu"><i data-lucide="x"></i></button>
+        <a href="/" class="sidebar-logo" style="text-decoration: none;">
+            <div class="sidebar-logo-icon"><i data-lucide="bot"></i></div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">
+            <i data-lucide="chevrons-left"></i>
+            <span>Collapse</span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="/logs" class="nav-item"><i data-lucide="file-text"></i><span>Logs</span></a>
+                <a href="/charts" class="nav-item"><i data-lucide="candlestick-chart"></i><span>Charts</span></a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item"><i data-lucide="brain"></i><span>AI Tools</span></a>
+                <a href="/signals" class="nav-item active"><i data-lucide="target"></i><span>Trade Signals</span></a>
+                <a href="/news" class="nav-item"><i data-lucide="newspaper"></i><span>News & Events</span></a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item"><i data-lucide="user"></i><span>Profile</span></a>
+                <a href="/connect_mt5" class="nav-item"><i data-lucide="link"></i><span>MT5 Connection</span></a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ username[0]|upper if username else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-toggle" id="menu-toggle" title="Open Menu"><i data-lucide="menu"></i></button>
+                <h1 class="page-title">Trade Signals</h1>
+            </div>
+            <div class="header-right">
+                <a href="/" class="logout-btn" style="background: var(--primary); border-color: var(--primary); color: white;"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- Signals Card -->
+            <div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); border: 2px solid #22c55e;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="target" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark);">Explicit Trade Signals</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">High-probability setups with exact entry/SL/TP</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <!-- Auto-Execute Toggle -->
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #fef3c7; border-radius: 20px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #b45309; cursor: pointer;">Auto-Execute</label>
+                            <input type="checkbox" id="auto-execute-toggle" style="width: 18px; height: 18px; cursor: pointer;">
+                        </div>
+                        <div id="session-badge" style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #dbeafe; color: #2563eb;">
+                            LONDON
+                        </div>
+                        <button id="refresh-signals" class="btn" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700);">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>Scan
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Auto-Execute Status -->
+                <div id="auto-execute-status" style="display: none; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">🤖</span>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; color: #b45309;">Auto-Execute ENABLED</div>
+                            <div style="font-size: 12px; color: #92400e;">Signals with score ≥7 will be automatically executed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="signals-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="text-align: center; padding: 40px; color: var(--gray-500);">
+                        <i data-lucide="loader" style="width: 32px; height: 32px; animation: spin 1s linear infinite;"></i>
+                        <p style="margin-top: 12px;">Scanning markets for high-probability setups...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Popup Notification Container -->
+            <div id="signal-popup" style="display: none; position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 380px; animation: slideIn 0.3s ease-out;">
+                <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 16px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                        <div style="font-size: 24px;">🎯</div>
+                        <button onclick="closePopup()" style="background: rgba(255,255,255,0.2); border: none; border-radius: 50%; width: 28px; height: 28px; color: white; cursor: pointer; font-size: 16px;">&times;</button>
+                    </div>
+                    <div id="popup-content" style="color: white;">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+            </style>
+
+            <!-- Legend Card -->
+            <div class="card">
+                <h3 style="font-size: 16px; font-weight: 600; color: var(--dark); margin-bottom: 16px;">Signal Legend</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">BUY</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">Long position signal</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">SELL</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">Short position signal</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #f3f4f6; color: #6b7280; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">WAIT</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">No clear setup</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 13px; color: var(--gray-600);"><strong>R:R</strong> = Risk to Reward Ratio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        
+        // Responsive Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const mainContent = document.querySelector('.main');
+
+        // Desktop: Toggle collapsed state
+        function toggleSidebarCollapse() {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 1024) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', openSidebar);
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebar);
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        if (sidebarCollapseBtn) {
+            sidebarCollapseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebarCollapse();
+            });
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                closeSidebar();
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
+        
+        // Auto-execute settings - now uses BACKEND for persistence
+        let autoExecuteEnabled = false;
+        const MIN_SCORE_FOR_AUTO = 7;
+        let lastSeenSignals = {};  // Track signals for popup notifications
+        let statusPollInterval = null;
+        
+        // Audio notification (optional)
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleQoAKIzd8teleQoAKIzd8teleQoA');
+                audio.volume = 0.5;
+                audio.play().catch(() => {});
+            } catch(e) {}
+        }
+        
+        // Show popup notification
+        function showSignalPopup(signal, autoExecuted = false) {
+            const isBuy = signal.signal === 'BUY';
+            const arrow = isBuy ? '↗' : '↘';
+            const statusText = autoExecuted ? '✅ AUTO-EXECUTED!' : '🔔 NEW SIGNAL!';
+            
+            const content = `
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">${statusText}</div>
+                <div style="font-size: 28px; font-weight: 800; margin-bottom: 8px;">${arrow} ${signal.signal} ${signal.symbol}</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 6px;">
+                        <div style="font-size: 10px; opacity: 0.8;">Entry</div>
+                        <div style="font-size: 14px; font-weight: 600;">${signal.entry_price ? signal.entry_price.toFixed(5) : 'N/A'}</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 6px;">
+                        <div style="font-size: 10px; opacity: 0.8;">Score</div>
+                        <div style="font-size: 14px; font-weight: 600;">${signal.score || 'N/A'}/10</div>
+                    </div>
+                </div>
+                <div style="font-size: 12px; opacity: 0.9;">${(signal.reasons || []).slice(0, 2).join(' • ')}</div>
+            `;
+            
+            $('#popup-content').html(content);
+            $('#signal-popup').show();
+            playNotificationSound();
+            
+            // Auto-hide after 8 seconds
+            setTimeout(closePopup, 8000);
+        }
+        
+        function closePopup() {
+            $('#signal-popup').hide();
+        }
+        
+        // Execute a signal
+        function executeSignal(symbol) {
+            return $.ajax({
+                url: '/api/signal/execute',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ symbol: symbol })
+            });
+        }
+        
+        // Update UI based on backend status
+        function updateAutoExecuteUI(status) {
+            if (status.running) {
+                autoExecuteEnabled = true;
+                $('#auto-execute-toggle').prop('checked', true);
+                $('#auto-execute-status').show();
+                
+                // Show last signal if available
+                if (status.last_signal && status.last_signal.executed) {
+                    $('#auto-execute-status').html(`
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">🤖</span>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 600; color: #b45309;">Auto-Execute ACTIVE (runs even when you leave)</div>
+                                <div style="font-size: 12px; color: #16a34a;">Last: ${status.last_signal.direction} ${status.last_signal.symbol} - Ticket #${status.last_signal.ticket}</div>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    $('#auto-execute-status').html(`
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">🤖</span>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 600; color: #b45309;">Auto-Execute ACTIVE</div>
+                                <div style="font-size: 12px; color: #92400e;">Running in background - ${status.status || 'Scanning...'}</div>
+                            </div>
+                        </div>
+                    `);
+                }
+            } else {
+                autoExecuteEnabled = false;
+                $('#auto-execute-toggle').prop('checked', false);
+                $('#auto-execute-status').hide();
+            }
+        }
+        
+        // Poll backend status
+        function pollAutoExecuteStatus() {
+            $.get('/api/signals/autoexecute/status', function(status) {
+                updateAutoExecuteUI(status);
+            });
+        }
+        
+        // Toggle auto-execute - now calls BACKEND
+        $('#auto-execute-toggle').change(function() {
+            const shouldEnable = $(this).is(':checked');
+            $(this).prop('disabled', true);
+            
+            if (shouldEnable) {
+                $.ajax({
+                    url: '/api/signals/autoexecute/start',
+                    type: 'POST',
+                    success: function(result) {
+                        $('#auto-execute-toggle').prop('disabled', false);
+                        if (result.success) {
+                            updateAutoExecuteUI(result.status);
+                            // Start polling for updates
+                            if (!statusPollInterval) {
+                                statusPollInterval = setInterval(pollAutoExecuteStatus, 5000);
+                            }
+                        } else {
+                            alert('Failed to start auto-execute: ' + (result.error || 'Unknown error'));
+                            $('#auto-execute-toggle').prop('checked', false);
+                        }
+                    },
+                    error: function() {
+                        $('#auto-execute-toggle').prop('disabled', false);
+                        alert('Failed to start auto-execute');
+                        $('#auto-execute-toggle').prop('checked', false);
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: '/api/signals/autoexecute/stop',
+                    type: 'POST',
+                    success: function(result) {
+                        $('#auto-execute-toggle').prop('disabled', false);
+                        updateAutoExecuteUI(result.status);
+                        // Stop polling
+                        if (statusPollInterval) {
+                            clearInterval(statusPollInterval);
+                            statusPollInterval = null;
+                        }
+                    },
+                    error: function() {
+                        $('#auto-execute-toggle').prop('disabled', false);
+                    }
+                });
+            }
+        });
+        
+        // Check status on page load and sync UI
+        $.get('/api/signals/autoexecute/status', function(status) {
+            updateAutoExecuteUI(status);
+            if (status.running) {
+                // Resume polling if already running
+                statusPollInterval = setInterval(pollAutoExecuteStatus, 5000);
+            }
+        });
+
+        function updateTradeSignals() {
+            $.get('/api/signals', function(data) {
+                if (data && !data.error) {
+                    const session = data.session || 'UNKNOWN';
+                    const volatility = data.session_volatility || 'UNKNOWN';
+                    let sessionColor = '#6b7280';
+                    let sessionBg = '#f3f4f6';
+                    
+                    if (session === 'OVERLAP') {
+                        sessionColor = '#16a34a'; sessionBg = '#dcfce7';
+                    } else if (session === 'LONDON' || session === 'NEW_YORK') {
+                        sessionColor = '#2563eb'; sessionBg = '#dbeafe';
+                    } else if (session === 'ASIAN') {
+                        sessionColor = '#d97706'; sessionBg = '#fef3c7';
+                    }
+                    
+                    $('#session-badge').text(session + ' (' + volatility + ')').css({ 'background': sessionBg, 'color': sessionColor });
+                    
+                    const signals = data.signals || [];
+                    let html = '';
+                    
+                    if (signals.length === 0) {
+                        html = `<div style="text-align: center; padding: 40px; color: var(--gray-500);">
+                            <i data-lucide="search" style="width: 32px; height: 32px;"></i>
+                            <p style="margin-top: 12px;">No high-probability setups found right now</p>
+                            <p style="font-size: 12px; margin-top: 4px;">Signals appear when market conditions are optimal</p>
+                        </div>`;
+                    } else {
+                        signals.forEach(function(signal) {
+                            if (signal.signal === 'BUY' || signal.signal === 'SELL') {
+                                const isBuy = signal.signal === 'BUY';
+                                const bgColor = isBuy ? '#f0fdf4' : '#fef2f2';
+                                const borderColor = isBuy ? '#22c55e' : '#ef4444';
+                                const textColor = isBuy ? '#16a34a' : '#dc2626';
+                                const arrow = isBuy ? '↗' : '↘';
+                                const signalKey = `${signal.symbol}_${signal.signal}_${signal.time}`;
+                                
+                                // Show popup for new high-score signals (backend handles auto-execute)
+                                if (!lastSeenSignals[signalKey] && signal.score >= MIN_SCORE_FOR_AUTO) {
+                                    lastSeenSignals[signalKey] = true;
+                                    showSignalPopup(signal, false);
+                                }
+                                
+                                html += `
+                                <div style="background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 12px; padding: 16px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 28px; font-weight: 800; color: ${textColor};">${arrow} ${signal.signal}</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: var(--dark);">${signal.symbol}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <button onclick="executeSignal('${signal.symbol}').done(function(r) { alert(r.success ? 'Trade executed! Ticket: ' + r.ticket : 'Failed: ' + r.reason); })" 
+                                                    style="background: ${textColor}; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">
+                                                Execute Trade
+                                            </button>
+                                            <div style="text-align: right;">
+                                                <div style="font-size: 12px; color: var(--gray-500);">Confidence</div>
+                                                <div style="font-size: 20px; font-weight: 700; color: ${textColor};">${(signal.confidence * 100).toFixed(0)}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;">
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">ENTRY</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--dark);">${signal.entry_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">STOP LOSS</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #dc2626;">${signal.sl_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                            <div style="font-size: 10px; color: #dc2626;">${signal.sl_pips.toFixed(1)} pips</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">TAKE PROFIT</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #16a34a;">${signal.tp_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                            <div style="font-size: 10px; color: #16a34a;">${signal.tp_pips.toFixed(1)} pips</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">R:R RATIO</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #2563eb;">1:${signal.rr_ratio.toFixed(1)}</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">${signal.lot_size} lots</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: white; padding: 10px; border-radius: 8px;">
+                                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Trade Reasons:</div>
+                                        <div style="font-size: 12px; color: var(--dark);">${(signal.reasons || []).join(' • ')}</div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 12px; margin-top: 12px; font-size: 11px; color: var(--gray-500);">
+                                        <span>Score: ${signal.score}/10</span>
+                                        <span>Trend: ${(signal.trend_strength * 100).toFixed(0)}%</span>
+                                        <span>MTF: ${(signal.mtf_confidence * 100).toFixed(0)}%</span>
+                                    </div>
+                                </div>`;
+                            } else {
+                                html += `
+                                <div style="background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-size: 16px;">⏸️</span>
+                                        <span style="font-weight: 600; color: var(--gray-700);">${signal.symbol}</span>
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--gray-500);">${signal.reason || 'No signal'}</div>
+                                </div>`;
+                            }
+                        });
+                    }
+                    
+                    $('#signals-container').html(html);
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        $('#refresh-signals').click(function() {
+            $(this).find('i').addClass('animate-spin');
+            updateTradeSignals();
+            setTimeout(function() {
+                $('#refresh-signals i').removeClass('animate-spin');
+                lucide.createIcons();
+            }, 1000);
+        });
+
+        // Initial load and interval
+        updateTradeSignals();
+        setInterval(updateTradeSignals, 15000);
+
+        // Apply saved theme from dashboard
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>

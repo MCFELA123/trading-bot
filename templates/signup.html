@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - TradingBot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #0052ff;
+            --primary-dark: #0041cc;
+            --primary-light: #e8f0ff;
+            --success: #00c853;
+            --success-light: #e8f9ef;
+            --danger: #ff3b30;
+            --danger-light: #ffebea;
+            --dark: #0a1628;
+            --gray-900: #1a2332;
+            --gray-700: #4a5568;
+            --gray-600: #5b6b8b;
+            --gray-500: #718096;
+            --gray-400: #a0aec0;
+            --gray-300: #cbd5e0;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Left Side - Branding */
+        .branding {
+            flex: 1;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--gray-900) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .branding::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,82,255,0.15) 0%, transparent 70%);
+        }
+
+        .branding-content {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+        }
+
+        .branding-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 48px;
+        }
+
+        .branding-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .branding-logo-icon i {
+            color: white;
+            width: 26px;
+            height: 26px;
+        }
+
+        .branding-logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .branding h1 {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        .branding p {
+            font-size: 18px;
+            color: var(--gray-400);
+            line-height: 1.6;
+            margin-bottom: 48px;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0,82,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icon i {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .feature span {
+            font-size: 15px;
+            color: var(--gray-300);
+            font-weight: 500;
+        }
+
+        /* Right Side - Form */
+        .form-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: var(--white);
+            overflow-y: auto;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 15px;
+            color: var(--gray-600);
+        }
+
+        .error-message {
+            width: 100%;
+            background: var(--danger-light);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-message i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .success-message {
+            width: 100%;
+            background: var(--success-light);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            width: 100%;
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--gray-400);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 6px;
+        }
+
+        /* Password input wrapper */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-500);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        .toggle-password i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Password validation indicators */
+        .password-requirements {
+            margin-top: 8px;
+            padding: 12px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: var(--gray-600);
+            transition: color 0.2s;
+        }
+
+        .requirement:last-child {
+            margin-bottom: 0;
+        }
+
+        .requirement i {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .requirement.valid {
+            color: var(--success);
+        }
+
+        .requirement.invalid {
+            color: var(--danger);
+        }
+
+        .requirement.neutral {
+            color: var(--gray-500);
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-signup:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 82, 255, 0.25);
+        }
+
+        .btn-signup i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .branding {
+                display: none;
+            }
+            .form-side {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-side {
+                padding: 24px;
+            }
+            .form-header h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Branding Side -->
+    <div class="branding">
+        <div class="branding-content">
+            <div class="branding-logo">
+                <div class="branding-logo-icon">
+                    <i data-lucide="bot"></i>
+                </div>
+                <span class="branding-logo-text">TradingBot</span>
+            </div>
+
+            <h1>Start Your Trading Journey</h1>
+            <p>Create an account and let our automated trading system work for you.</p>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <span>Free Account Setup</span>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="link"></i>
+                    </div>
+                    <span>Connect Any MT5 Broker</span>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i data-lucide="trending-up"></i>
+                    </div>
+                    <span>Professional Trading Strategy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Side -->
+    <div class="form-side">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Create account</h2>
+                <p>Get started with automated trading</p>
+            </div>
+
+            {% if error %}
+            <div class="error-message">
+                <i data-lucide="alert-triangle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if success %}
+            <div class="success-message">
+                <i data-lucide="check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('signup') }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Choose a username" 
+                        required
+                        minlength="3"
+                        maxlength="20"
+                        autocomplete="username"
+                    >
+                    <p class="hint">3-20 characters, letters and numbers only</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Enter your email" 
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Create a password" 
+                            required
+                            minlength="6"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-requirements" id="password-requirements">
+                        <div class="requirement neutral" id="req-length">
+                            <i data-lucide="circle"></i>
+                            <span>At least 6 characters</span>
+                        </div>
+                        <div class="requirement neutral" id="req-uppercase">
+                            <i data-lucide="circle"></i>
+                            <span>Contains uppercase letter</span>
+                        </div>
+                        <div class="requirement neutral" id="req-lowercase">
+                            <i data-lucide="circle"></i>
+                            <span>Contains lowercase letter</span>
+                        </div>
+                        <div class="requirement neutral" id="req-number">
+                            <i data-lucide="circle"></i>
+                            <span>Contains a number</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="confirm_password" 
+                            name="confirm_password" 
+                            placeholder="Confirm your password" 
+                            required
+                            minlength="6"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-requirements" id="confirm-requirements">
+                        <div class="requirement neutral" id="req-match">
+                            <i data-lucide="circle"></i>
+                            <span>Passwords match</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-signup">
+                    <i data-lucide="user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+
+            <div class="form-footer">
+                Already have an account? <a href="/login">Sign in</a>
+                <br><br>
+                <a href="/forgot-password">Forgot Password?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Toggle password visibility
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const iconContainer = button;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconContainer.innerHTML = '<i data-lucide="eye-off"></i>';
+            } else {
+                input.type = 'password';
+                iconContainer.innerHTML = '<i data-lucide="eye"></i>';
+            }
+            lucide.createIcons();
+        }
+
+        // Update requirement indicator
+        function updateRequirement(elementId, isValid, hasInput) {
+            const element = document.getElementById(elementId);
+            const span = element.querySelector('span');
+            const spanText = span.textContent;
+            
+            element.classList.remove('valid', 'invalid', 'neutral');
+            
+            let iconName;
+            if (!hasInput) {
+                element.classList.add('neutral');
+                iconName = 'circle';
+            } else if (isValid) {
+                element.classList.add('valid');
+                iconName = 'check-circle';
+            } else {
+                element.classList.add('invalid');
+                iconName = 'x-circle';
+            }
+            
+            // Replace entire element content to properly update icon
+            element.innerHTML = '<i data-lucide="' + iconName + '"></i><span>' + spanText + '</span>';
+        }
+
+        // Validate password in real-time
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const hasInput = password.length > 0;
+            
+            // Check each requirement
+            updateRequirement('req-length', password.length >= 6, hasInput);
+            updateRequirement('req-uppercase', /[A-Z]/.test(password), hasInput);
+            updateRequirement('req-lowercase', /[a-z]/.test(password), hasInput);
+            updateRequirement('req-number', /[0-9]/.test(password), hasInput);
+            
+            // Check password match
+            const hasConfirmInput = confirmPassword.length > 0;
+            updateRequirement('req-match', password === confirmPassword && password.length > 0, hasConfirmInput);
+            
+            // Re-render all lucide icons
+            lucide.createIcons();
+        }
+
+        // Add event listeners
+        document.getElementById('password').addEventListener('input', validatePassword);
+        document.getElementById('confirm_password').addEventListener('input', validatePassword);
+    </script>
+</body>
+</html>

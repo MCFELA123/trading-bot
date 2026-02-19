@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --success: #0ecb81;
+            --success-light: rgba(14, 203, 129, 0.15);
+            --danger: #f6465d;
+            --danger-light: rgba(246, 70, 93, 0.15);
+            --warning: #f0b90b;
+            --warning-light: rgba(240, 185, 11, 0.15);
+            --dark: #0b0e11;
+            --gray-900: #121318;
+            --gray-800: #1e222d;
+            --gray-700: #2a2e39;
+            --gray-600: #363a45;
+            --gray-500: #848e9c;
+            --gray-400: #b7bdc6;
+            --gray-300: #d1d4dc;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #2a2e39;
+            --card-bg: #1e222d;
+            --sidebar-bg: #0b0e11;
+            --main-bg: #131722;
+            --text-primary: #ffffff;
+            --text-secondary: #b7bdc6;
+            --text-muted: #848e9c;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="light"] {
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --main-bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="light"] .stat-value,
+        [data-theme="light"] .status-value,
+        [data-theme="light"] .pl-title,
+        [data-theme="light"] .positions-title,
+        [data-theme="light"] .stat-card .stat-value { color: #0f172a; }
+        [data-theme="light"] .stat-label,
+        [data-theme="light"] .stat-change,
+        [data-theme="light"] .status-info h3 { color: #64748b; }
+        [data-theme="light"] .positions-table td { color: #334155; }
+        [data-theme="light"] .positions-table th { color: #64748b; background: #f1f5f9; }
+        [data-theme="light"] .positions-table tr:hover { background: #f8fafc; }
+        [data-theme="light"] .profit-cell.positive { color: #16a34a !important; }
+        [data-theme="light"] .profit-cell.negative { color: #dc2626 !important; }
+        [data-theme="light"] .type-badge.buy { background: rgba(22, 163, 74, 0.15); color: #16a34a; }
+        [data-theme="light"] .type-badge.sell { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover { background: var(--primary-dark); }
+        .theme-toggle i { width: 18px; height: 18px; color: white; }
+        .theme-toggle-label { font-size: 13px; font-weight: 500; color: white; }
+
+        /* Sidebar - Always dark */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #0b0e11;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        /* Collapsed Sidebar (Desktop) */
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 24px 8px;
+        }
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-section-title,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .user-card {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        .main.sidebar-collapsed {
+            margin-left: 70px;
+        }
+
+        /* Sidebar Collapse Button (Desktop) */
+        .sidebar-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .sidebar-collapse-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+        .sidebar-collapse-btn i {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Hamburger Menu Button (Mobile) */
+        .menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+        .menu-toggle:hover {
+            background: var(--gray-700);
+        }
+        .menu-toggle i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sidebar Close Button (mobile) */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sidebar-close i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i { color: white; width: 22px; height: 22px; }
+        .sidebar-logo-text { font-size: 20px; font-weight: 700; color: #ffffff; }
+        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #363a45; border-radius: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+        .nav-section { margin-bottom: 24px; }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-name { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .user-role { font-size: 12px; color: #848e9c; }
+
+        /* Main Content */
+        .main { margin-left: 260px; min-height: 100vh; background: var(--main-bg); transition: all 0.3s ease; }
+
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: none;
+                width: 280px;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+            }
+            .sidebar.collapsed {
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar-close {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: flex !important;
+            }
+            .sidebar-collapse-btn {
+                display: none !important;
+            }
+            .main, .main.sidebar-collapsed {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85vw;
+                max-width: 300px;
+                padding: 20px 12px;
+            }
+            .header {
+                padding: 0 16px;
+                height: 60px;
+            }
+            .page-title {
+                font-size: 16px;
+            }
+            .logout-btn span {
+                display: none;
+            }
+            .logout-btn {
+                padding: 10px;
+            }
+            .theme-toggle-label {
+                display: none;
+            }
+            .theme-toggle {
+                padding: 8px;
+            }
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .page-title i {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+        
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--primary);
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .header-btn:hover { background: var(--primary-dark); color: white; }
+        .header-btn i { width: 20px; height: 20px; }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            border: 1px solid var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+        }
+
+        /* Dashboard */
+        .dashboard { padding: 24px; }
+
+        /* MT5 Alert */
+        .mt5-alert {
+            width: 100%;
+            background: var(--warning-light);
+            border: 1px solid rgba(240, 185, 11, 0.3);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .mt5-alert-content { display: flex; align-items: center; gap: 16px; }
+        .mt5-alert-content i { width: 24px; height: 24px; color: var(--warning); }
+        .mt5-alert-content strong { color: var(--warning); display: block; margin-bottom: 2px; }
+        .mt5-alert-content p { color: var(--gray-400); font-size: 14px; margin: 0; }
+
+        .btn-connect-mt5 {
+            padding: 10px 20px;
+            background: var(--warning);
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-connect-mt5:hover { background: #e68600; }
+
+        /* Bot Status Card */
+        .status-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .status-left { display: flex; align-items: center; gap: 24px; }
+
+        .status-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-icon i { width: 32px; height: 32px; color: var(--primary); }
+
+        .status-info h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-400);
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-100);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.running { background: var(--success); color: white; }
+        .status-badge.stopped { background: var(--gray-500); color: white; }
+
+        .bot-controls { display: flex; gap: 12px; }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn i { width: 18px; height: 18px; }
+        .btn-start { background: var(--success); color: white; }
+        .btn-start:hover { background: #00b348; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,200,83,0.3); }
+        .btn-stop { background: var(--danger); color: white; }
+        .btn-stop:hover { background: #e63529; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,59,48,0.3); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i { width: 24px; height: 24px; }
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--primary); }
+        .stat-icon.green { background: rgba(14, 203, 129, 0.15); color: var(--success); }
+        .stat-icon.purple { background: rgba(147, 51, 234, 0.15); color: #a855f7; }
+
+        .stat-label { font-size: 13px; font-weight: 500; color: var(--gray-400); }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-100); margin-bottom: 4px; }
+        .stat-change { font-size: 13px; color: var(--gray-400); }
+
+        /* P/L Card */
+        .pl-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .pl-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .pl-title { font-size: 16px; font-weight: 600; color: var(--gray-100); }
+        .pl-value { font-size: 32px; font-weight: 700; }
+        .pl-value.positive { color: var(--success); }
+        .pl-value.negative { color: var(--danger); }
+
+        .pl-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-600);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .pl-progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .pl-progress-bar.positive { background: linear-gradient(90deg, var(--success) 0%, #00e676 100%); }
+        .pl-progress-bar.negative { background: linear-gradient(90deg, var(--danger) 0%, #ff6b60 100%); }
+
+        /* Loss Protection Card */
+        .protection-card {
+            width: 100%;
+            background: linear-gradient(135deg, #1a1e29 0%, #291a1a 100%);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 2px solid rgba(246, 70, 93, 0.4);
+            box-shadow: var(--shadow);
+        }
+
+        /* Positions Table */
+        .positions-card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .positions-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .positions-title { font-size: 16px; font-weight: 600; color: var(--gray-100); }
+
+        .positions-count {
+            padding: 4px 12px;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .positions-table { width: 100%; border-collapse: collapse; }
+
+        .positions-table th {
+            text-align: left;
+            padding: 14px 24px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(30, 34, 45, 0.5);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .positions-table td {
+            padding: 16px 24px;
+            font-size: 14px;
+            color: var(--gray-300);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .positions-table tr:last-child td { border-bottom: none; }
+        .positions-table tr:hover { background: rgba(30, 34, 45, 0.5); }
+
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .type-badge.buy { background: rgba(14, 203, 129, 0.15); color: var(--success); }
+        .type-badge.sell { background: rgba(246, 70, 93, 0.15); color: var(--danger); }
+
+        .profit-cell { font-weight: 600; }
+        .profit-cell.positive { color: var(--success); }
+        .profit-cell.negative { color: var(--danger); }
+
+        .empty-state { padding: 48px 24px; text-align: center; }
+        .empty-state i { width: 48px; height: 48px; color: var(--gray-500); margin-bottom: 16px; }
+        .empty-state p { color: var(--gray-400); font-size: 14px; }
+
+        /* Toggle Switch */
+        .toggle-switch input:checked + .toggle-slider { background-color: #22c55e; }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+        .loss-protection-disabled { opacity: 0.6; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard { padding: 16px; }
+            .status-card { flex-direction: column; text-align: center; }
+            .status-left { flex-direction: column; }
+            .bot-controls { width: 100%; gap: 8px; }
+            .bot-controls .btn { flex: 1; justify-content: center; padding: 10px 16px; font-size: 13px; }
+            .mt5-alert { flex-direction: column; text-align: center; padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 24px; }
+            .positions-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .positions-table { min-width: 600px; }
+            .pl-card { padding: 20px; }
+            .pl-value { font-size: 26px; }
+            .protection-card { padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard { padding: 12px; }
+            .header { padding: 0 12px; height: 56px; }
+            .page-title { font-size: 14px; }
+            .header-right { gap: 8px; }
+            .header-btn { width: 36px; height: 36px; }
+            .logout-btn { padding: 8px; }
+            .logout-btn span { display: none; }
+            .theme-toggle { padding: 6px; }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 20px; }
+            .stat-label { font-size: 11px; }
+            .status-card { padding: 16px; }
+            .positions-card { border-radius: 12px; }
+            .positions-header { padding: 14px 16px; }
+            .positions-table th, .positions-table td { padding: 10px 12px; font-size: 11px; white-space: nowrap; }
+            .pl-card { padding: 16px; }
+            .pl-value { font-size: 22px; }
+            .stats-grid { gap: 10px; }
+            .protection-card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close" title="Close Menu">
+            <i data-lucide="x"></i>
+        </button>
+        <a href="/" class="sidebar-logo" style="text-decoration: none;">
+            <div class="sidebar-logo-icon"><i data-lucide="bot"></i></div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">
+            <i data-lucide="chevrons-left"></i>
+            <span>Collapse</span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="/logs" class="nav-item"><i data-lucide="file-text"></i><span>Logs</span></a>
+                <a href="/charts" class="nav-item"><i data-lucide="candlestick-chart"></i><span>Charts</span></a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item"><i data-lucide="brain"></i><span>AI Tools</span></a>
+                <a href="/signals" class="nav-item"><i data-lucide="target"></i><span>Trade Signals</span></a>
+                <a href="/news" class="nav-item"><i data-lucide="newspaper"></i><span>News & Events</span></a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item"><i data-lucide="user"></i><span>Profile</span></a>
+                <a href="/connect_mt5" class="nav-item"><i data-lucide="link"></i><span>MT5 Connection</span></a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ username[0]|upper if username else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-toggle" id="menu-toggle" title="Open Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="theme-toggle" id="theme-toggle" title="Toggle Light/Dark Mode">
+                    <i data-lucide="sun" id="theme-icon-light" style="display: none;"></i>
+                    <i data-lucide="moon" id="theme-icon-dark"></i>
+                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                </div>
+                <button class="header-btn" id="refresh-btn" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+                <a href="/logout" class="logout-btn"><i data-lucide="log-out"></i>Sign Out</a>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- MT5 Alert -->
+            <div class="mt5-alert" id="mt5-alert" style="display: none;">
+                <div class="mt5-alert-content">
+                    <i data-lucide="alert-circle"></i>
+                    <div>
+                        <strong>MT5 Not Connected</strong>
+                        <p>Connect your MetaTrader 5 account to start trading</p>
+                    </div>
+                </div>
+                <a href="/connect_mt5" class="btn-connect-mt5"><i data-lucide="link"></i>Connect Now</a>
+            </div>
+
+            <!-- Bot Status -->
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-icon"><i data-lucide="zap"></i></div>
+                    <div class="status-info">
+                        <h3>Trading Bot Status</h3>
+                        <div class="status-value">
+                            MULTI-TIMEFRAME SCALPING MODE
+                            <span class="status-badge stopped" id="status-badge">{{ status }}</span>
+                        </div>
+                        <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">M15/M5 MULTI-TF</span>
+                            <span style="background: rgba(14, 203, 129, 0.2); color: #0ecb81; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">5 SEC CHECK</span>
+                            <span style="background: rgba(240, 185, 11, 0.2); color: #f0b90b; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">HIGH PROBABILITY</span>
+                            <span style="background: rgba(236, 72, 153, 0.2); color: #f472b6; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">AUTO BREAKEVEN</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bot-controls">
+                    <button class="btn btn-start" id="start-btn"><i data-lucide="play"></i>Start Bot</button>
+                    <button class="btn btn-stop" id="stop-btn"><i data-lucide="square"></i>Stop Bot</button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Account Balance</span>
+                        <div class="stat-icon blue"><i data-lucide="wallet"></i></div>
+                    </div>
+                    <div class="stat-value" id="balance">$0.00</div>
+                    <div class="stat-change">Available funds</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Equity</span>
+                        <div class="stat-icon green"><i data-lucide="trending-up"></i></div>
+                    </div>
+                    <div class="stat-value" id="equity">$0.00</div>
+                    <div class="stat-change">Current value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Free Margin</span>
+                        <div class="stat-icon purple"><i data-lucide="gem"></i></div>
+                    </div>
+                    <div class="stat-value" id="free-margin">$0.00</div>
+                    <div class="stat-change">Available to trade</div>
+                </div>
+            </div>
+
+            <!-- P/L Card -->
+            <div class="pl-card">
+                <div class="pl-header">
+                    <span class="pl-title">Total Profit / Loss</span>
+                    <span class="pl-value positive" id="total-pl">$0.00</span>
+                </div>
+                <div class="pl-progress">
+                    <div class="pl-progress-bar positive" id="pl-bar" style="width: 50%;"></div>
+                </div>
+            </div>
+
+            <!-- Loss Protection Status Card -->
+            <div class="protection-card" id="loss-protection-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="shield-alert" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--gray-100); margin-bottom: 2px;">Loss Protection Status</h3>
+                            <p style="font-size: 13px; color: var(--gray-400);">Daily limits & safety controls</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 13px; color: var(--gray-400);">Protection:</span>
+                            <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
+                                <input type="checkbox" id="loss-protection-toggle" checked style="opacity: 0; width: 0; height: 0;">
+                                <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #374151; transition: .3s; border-radius: 26px;"></span>
+                            </label>
+                        </div>
+                        <div id="protection-status-badge" style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; background: rgba(14, 203, 129, 0.2); color: #0ecb81;">ACTIVE</div>
+                    </div>
+                </div>
+
+                <!-- Protection Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div style="background: rgba(30, 34, 45, 0.8); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 4px;">Daily Loss</div>
+                        <div id="daily-loss" style="font-size: 16px; font-weight: 700; color: #0ecb81;">$0.00</div>
+                        <div style="font-size: 10px; color: var(--gray-500);">Limit: 3%</div>
+                    </div>
+                    <div style="background: rgba(30, 34, 45, 0.8); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 4px;">Drawdown</div>
+                        <div id="drawdown" style="font-size: 16px; font-weight: 700; color: #0ecb81;">0%</div>
+                        <div style="font-size: 10px; color: var(--gray-500);">Max: 10%</div>
+                    </div>
+                    <div style="background: rgba(30, 34, 45, 0.8); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 4px;">Consecutive Losses</div>
+                        <div id="consecutive-losses" style="font-size: 16px; font-weight: 700; color: #0ecb81;">0</div>
+                        <div style="font-size: 10px; color: var(--gray-500);">Max: 5</div>
+                    </div>
+                    <div style="background: rgba(30, 34, 45, 0.8); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-400); margin-bottom: 4px;">Today's Trades</div>
+                        <div id="trades-today" style="font-size: 16px; font-weight: 700; color: #3b82f6;">0</div>
+                        <div id="win-loss-today" style="font-size: 10px; color: var(--gray-500);">W: 0 / L: 0</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bars -->
+                <div style="background: rgba(30, 34, 45, 0.8); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="color: var(--gray-400);">Daily Loss Limit</span>
+                            <span id="daily-loss-percent" style="font-weight: 600; color: var(--gray-300);">0% / 3%</span>
+                        </div>
+                        <div style="height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
+                            <div id="daily-loss-bar" style="height: 100%; width: 0%; background: #0ecb81; border-radius: 4px; transition: all 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="color: var(--gray-400);">Drawdown Limit</span>
+                            <span id="drawdown-percent" style="font-weight: 600; color: var(--gray-300);">0% / 10%</span>
+                        </div>
+                        <div style="height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
+                            <div id="drawdown-bar" style="height: 100%; width: 0%; background: #0ecb81; border-radius: 4px; transition: all 0.3s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Positions Table -->
+            <div class="positions-card">
+                <div class="positions-header">
+                    <span class="positions-title">Open Positions</span>
+                    <span class="positions-count" id="positions-count">0</span>
+                </div>
+                <div class="positions-table-container">
+                    <table class="positions-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Type</th>
+                                <th>Volume</th>
+                                <th>Open Price</th>
+                                <th>S/L</th>
+                                <th>T/P</th>
+                                <th>Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positions-body">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i data-lucide="inbox"></i>
+                                        <p>No open positions</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Sidebar Elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const mainContent = document.querySelector('.main');
+
+        // Mobile: Open sidebar
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Mobile: Close sidebar
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Desktop: Toggle collapsed state
+        function toggleSidebarCollapse() {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 1024) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+
+        // Event Listeners
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openSidebar();
+            });
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeSidebar();
+            });
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        if (sidebarCollapseBtn) {
+            sidebarCollapseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebarCollapse();
+            });
+        }
+
+        // Close sidebar on nav item click (mobile)
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                closeSidebar();
+                // Restore collapsed state on desktop
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                }
+            } else {
+                // Remove collapsed state on mobile
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        function formatCurrency(value) {
+            return '$' + parseFloat(value || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function updateStatusBadge(running) {
+            const badge = document.getElementById('status-badge');
+            if (running) {
+                badge.textContent = 'Running';
+                badge.className = 'status-badge running';
+            } else {
+                badge.textContent = 'Stopped';
+                badge.className = 'status-badge stopped';
+            }
+        }
+
+        function checkMT5Status() {
+            $.get('/api/mt5_status', function(data) {
+                if (!data.connected) {
+                    $('#mt5-alert').show();
+                } else {
+                    $('#mt5-alert').hide();
+                }
+            });
+        }
+
+        function updateAccount() {
+            $.get('/account', function(data) {
+                if (data.balance !== undefined) {
+                    $('#balance').text(formatCurrency(data.balance));
+                    $('#equity').text(formatCurrency(data.equity));
+                    $('#free-margin').text(formatCurrency(data.free_margin));
+                }
+            });
+        }
+
+        function updatePositions() {
+            $.get('/positions', function(data) {
+                const tbody = $('#positions-body');
+                $('#positions-count').text(data.length);
+                
+                if (!data || data.length === 0) {
+                    tbody.html(`
+                        <tr><td colspan="7">
+                            <div class="empty-state">
+                                <i data-lucide="inbox"></i>
+                                <p>No open positions</p>
+                            </div>
+                        </td></tr>
+                    `);
+                    lucide.createIcons();
+                    return;
+                }
+                
+                let html = '';
+                let totalPL = 0;
+                
+                data.forEach(pos => {
+                    totalPL += pos.profit;
+                    const profitClass = pos.profit >= 0 ? 'positive' : 'negative';
+                    const typeClass = pos.type === 'BUY' ? 'buy' : 'sell';
+                    
+                    html += `
+                        <tr>
+                            <td><strong>#${pos.ticket}</strong></td>
+                            <td><span class="type-badge ${typeClass}">${pos.type}</span></td>
+                            <td>${pos.volume}</td>
+                            <td>${pos.price.toFixed(5)}</td>
+                            <td>${pos.sl.toFixed(5)}</td>
+                            <td>${pos.tp.toFixed(5)}</td>
+                            <td class="profit-cell ${profitClass}">${formatCurrency(pos.profit)}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.html(html);
+                
+                const plValue = $('#total-pl');
+                const plBar = $('#pl-bar');
+                plValue.text(formatCurrency(totalPL));
+                
+                if (totalPL >= 0) {
+                    plValue.removeClass('negative').addClass('positive');
+                    plBar.removeClass('negative').addClass('positive');
+                } else {
+                    plValue.removeClass('positive').addClass('negative');
+                    plBar.removeClass('positive').addClass('negative');
+                }
+            });
+        }
+
+        function updateStatus() {
+            $.get('/status', function(data) {
+                updateStatusBadge(data.running);
+            });
+        }
+
+        function updateLossProtection() {
+            $.get('/api/loss-protection', function(data) {
+                if (data && !data.error) {
+                    const dailyLoss = data.daily_loss || 0;
+                    const dailyLossPercent = data.daily_loss_percent || 0;
+                    const maxDailyPercent = data.max_daily_loss_percent || 3;
+                    
+                    $('#daily-loss').text('$' + Math.abs(dailyLoss).toFixed(2));
+                    $('#daily-loss-percent').text(dailyLossPercent.toFixed(1) + '% / ' + maxDailyPercent + '%');
+                    
+                    const dailyBarWidth = Math.min((dailyLossPercent / maxDailyPercent) * 100, 100);
+                    $('#daily-loss-bar').css('width', dailyBarWidth + '%');
+                    
+                    if (dailyLossPercent >= maxDailyPercent * 0.8) {
+                        $('#daily-loss').css('color', '#dc2626');
+                        $('#daily-loss-bar').css('background', '#dc2626');
+                    } else if (dailyLossPercent >= maxDailyPercent * 0.5) {
+                        $('#daily-loss').css('color', '#d97706');
+                        $('#daily-loss-bar').css('background', '#f59e0b');
+                    } else {
+                        $('#daily-loss').css('color', '#16a34a');
+                        $('#daily-loss-bar').css('background', '#22c55e');
+                    }
+                    
+                    const drawdown = data.drawdown || 0;
+                    const maxDrawdown = data.max_drawdown || 10;
+                    
+                    $('#drawdown').text(drawdown.toFixed(1) + '%');
+                    $('#drawdown-percent').text(drawdown.toFixed(1) + '% / ' + maxDrawdown + '%');
+                    
+                    const drawdownBarWidth = Math.min((drawdown / maxDrawdown) * 100, 100);
+                    $('#drawdown-bar').css('width', drawdownBarWidth + '%');
+                    
+                    if (drawdown >= maxDrawdown * 0.8) {
+                        $('#drawdown').css('color', '#dc2626');
+                        $('#drawdown-bar').css('background', '#dc2626');
+                    } else if (drawdown >= maxDrawdown * 0.5) {
+                        $('#drawdown').css('color', '#d97706');
+                        $('#drawdown-bar').css('background', '#f59e0b');
+                    } else {
+                        $('#drawdown').css('color', '#16a34a');
+                        $('#drawdown-bar').css('background', '#22c55e');
+                    }
+                    
+                    const consecLosses = data.consecutive_losses || 0;
+                    const maxConsec = data.max_consecutive || 5;
+                    $('#consecutive-losses').text(consecLosses);
+                    if (consecLosses >= maxConsec - 1) {
+                        $('#consecutive-losses').css('color', '#dc2626');
+                    } else if (consecLosses >= maxConsec / 2) {
+                        $('#consecutive-losses').css('color', '#d97706');
+                    } else {
+                        $('#consecutive-losses').css('color', '#16a34a');
+                    }
+                    
+                    $('#trades-today').text(data.trades_today || 0);
+                    $('#win-loss-today').text('W: ' + (data.wins_today || 0) + ' / L: ' + (data.losses_today || 0));
+                    
+                    if (data.emergency_stop) {
+                        $('#protection-status-badge').text('EMERGENCY STOP').css({
+                            'background': '#fef2f2',
+                            'color': '#dc2626'
+                        });
+                    } else if (!data.can_trade) {
+                        $('#protection-status-badge').text('PAUSED').css({
+                            'background': '#fef3c7',
+                            'color': '#d97706'
+                        });
+                    } else {
+                        $('#protection-status-badge').text('ACTIVE').css({
+                            'background': '#dcfce7',
+                            'color': '#16a34a'
+                        });
+                    }
+                    
+                    const isEnabled = data.enabled !== false;
+                    $('#loss-protection-toggle').prop('checked', isEnabled);
+                    
+                    if (!isEnabled) {
+                        $('#loss-protection-card').addClass('loss-protection-disabled');
+                        $('#protection-status-badge').text('DISABLED').css({
+                            'background': '#f3f4f6',
+                            'color': '#6b7280'
+                        });
+                    } else {
+                        $('#loss-protection-card').removeClass('loss-protection-disabled');
+                    }
+                }
+            });
+        }
+
+        $(document).on('change', '#loss-protection-toggle', function() {
+            const isEnabled = $(this).is(':checked');
+            const $toggle = $(this);
+            $toggle.prop('disabled', true);
+            
+            $.ajax({
+                url: '/api/loss-protection/toggle',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ enabled: isEnabled }),
+                success: function(response) {
+                    if (response.success) {
+                        if (response.enabled) {
+                            $('#loss-protection-card').removeClass('loss-protection-disabled');
+                            $('#protection-status-badge').text('ACTIVE').css({
+                                'background': '#dcfce7',
+                                'color': '#16a34a'
+                            });
+                        } else {
+                            $('#loss-protection-card').addClass('loss-protection-disabled');
+                            $('#protection-status-badge').text('DISABLED').css({
+                                'background': '#f3f4f6',
+                                'color': '#6b7280'
+                            });
+                        }
+                    } else {
+                        $toggle.prop('checked', !isEnabled);
+                        alert('Failed to toggle loss protection');
+                    }
+                },
+                error: function() {
+                    $toggle.prop('checked', !isEnabled);
+                    alert('Failed to toggle loss protection');
+                },
+                complete: function() {
+                    $toggle.prop('disabled', false);
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            checkMT5Status();
+            updateAccount();
+            updatePositions();
+            updateStatus();
+            updateLossProtection();
+            
+            setInterval(function() {
+                updateAccount();
+                updatePositions();
+                updateStatus();
+            }, 3000);
+            
+            setInterval(updateLossProtection, 5000);
+        });
+
+        $('#start-btn').click(function() {
+            $.get('/start_bot', function(data) {
+                alert(data.message || 'Bot started!');
+                if (data.running !== undefined) {
+                    updateStatusBadge(data.running);
+                }
+                setTimeout(updateStatus, 500);
+            });
+        });
+
+        $('#stop-btn').click(function() {
+            $.get('/stop_bot', function(data) {
+                alert(data.message || 'Bot stopped!');
+                if (data.running !== undefined) {
+                    updateStatusBadge(data.running);
+                }
+                setTimeout(updateStatus, 500);
+            });
+        });
+
+        $('#refresh-btn').click(function() {
+            updateAccount();
+            updatePositions();
+            updateStatus();
+            updateLossProtection();
+        });
+
+        // Theme Toggle
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const lightIcon = document.getElementById('theme-icon-light');
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const label = document.getElementById('theme-label');
+            if (theme === 'light') {
+                lightIcon.style.display = 'block';
+                darkIcon.style.display = 'none';
+                label.textContent = 'Light';
+            } else {
+                lightIcon.style.display = 'none';
+                darkIcon.style.display = 'block';
+                label.textContent = 'Dark';
+            }
+            lucide.createIcons();
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News & Events - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --success: #0ecb81;
+            --success-light: rgba(14, 203, 129, 0.15);
+            --danger: #f6465d;
+            --danger-light: rgba(246, 70, 93, 0.15);
+            --warning: #f0b90b;
+            --warning-light: rgba(240, 185, 11, 0.15);
+            --dark: #0b0e11;
+            --gray-900: #121318;
+            --gray-800: #1e222d;
+            --gray-700: #2a2e39;
+            --gray-600: #363a45;
+            --gray-500: #848e9c;
+            --gray-400: #b7bdc6;
+            --gray-300: #d1d4dc;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #2a2e39;
+            --card-bg: #1e222d;
+            --main-bg: #131722;
+            --text-primary: #ffffff;
+            --text-secondary: #b7bdc6;
+            --text-muted: #848e9c;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="light"] {
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --main-bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+
+        [data-theme="light"] .card { background: #ffffff; }
+        [data-theme="light"] .page-title { color: #0f172a; }
+        [data-theme="light"] .header { background: #ffffff; border-bottom-color: #e2e8f0; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #0b0e11;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+
+        /* Collapsed Sidebar (Desktop) */
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 24px 8px;
+        }
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-section-title,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .user-card {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        .main.sidebar-collapsed {
+            margin-left: 70px;
+        }
+
+        /* Sidebar Collapse Button (Desktop) */
+        .sidebar-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .sidebar-collapse-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+        .sidebar-collapse-btn i {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Hamburger Menu Button */
+        .menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+        .menu-toggle:hover {
+            background: var(--gray-700);
+        }
+        .menu-toggle i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sidebar Close Button (mobile) */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sidebar-close i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i { color: white; width: 22px; height: 22px; }
+        .sidebar-logo-text { font-size: 20px; font-weight: 700; color: #ffffff; }
+        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #363a45; border-radius: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #848e9c; }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; flex-shrink: 0; }
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-name { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .user-role { font-size: 12px; color: #848e9c; }
+
+        .main { margin-left: 260px; min-height: 100vh; background: var(--main-bg); transition: background 0.3s, margin-left 0.3s; }
+
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                height: 100vh !important;
+                width: 280px !important;
+                transform: translateX(-100%);
+                box-shadow: none;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar.collapsed {
+                width: 280px !important;
+            }
+            .sidebar-collapse-btn {
+                display: none !important;
+            }
+            .sidebar-close {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: flex !important;
+            }
+            .main, .main.sidebar-collapsed {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85vw !important;
+                max-width: 300px !important;
+                padding: 20px 12px;
+            }
+            .header {
+                padding: 0 16px;
+                height: 64px;
+            }
+            .page-title {
+                font-size: 16px;
+            }
+            .theme-toggle-label {
+                display: none;
+            }
+            .theme-toggle {
+                padding: 8px;
+            }
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: var(--gray-700);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .content { padding: 32px; }
+
+        .card {
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close" title="Close Menu">
+            <i data-lucide="x"></i>
+        </button>
+        <a href="/" class="sidebar-logo" style="text-decoration: none;">
+            <div class="sidebar-logo-icon"><i data-lucide="bot"></i></div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">
+            <i data-lucide="chevrons-left"></i>
+            <span>Collapse</span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="/logs" class="nav-item"><i data-lucide="file-text"></i><span>Logs</span></a>
+                <a href="/charts" class="nav-item"><i data-lucide="candlestick-chart"></i><span>Charts</span></a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item"><i data-lucide="brain"></i><span>AI Tools</span></a>
+                <a href="/signals" class="nav-item"><i data-lucide="target"></i><span>Trade Signals</span></a>
+                <a href="/news" class="nav-item active"><i data-lucide="newspaper"></i><span>News & Events</span></a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item"><i data-lucide="user"></i><span>Profile</span></a>
+                <a href="/connect_mt5" class="nav-item"><i data-lucide="link"></i><span>MT5 Connection</span></a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ username[0]|upper if username else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-toggle" id="menu-toggle" title="Open Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 class="page-title">News & Events</h1>
+            </div>
+            <div class="header-right">
+                <a href="/" class="logout-btn" style="background: var(--primary); border-color: var(--primary); color: white;"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- News Card -->
+            <div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="newspaper" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark);">Market News & Events</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Real-time news sentiment analysis</p>
+                        </div>
+                    </div>
+                    <button id="refresh-news" class="btn" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700);">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>Refresh
+                    </button>
+                </div>
+
+                <!-- News Sentiment Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">News Sentiment</div>
+                        <div id="news-sentiment" style="font-size: 16px; font-weight: 700; color: #d97706;">NEUTRAL</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Confidence</div>
+                        <div id="news-confidence" style="font-size: 16px; font-weight: 700; color: #2563eb;">50%</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">News Count</div>
+                        <div id="news-count" style="font-size: 16px; font-weight: 700; color: #7c3aed;">0</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">High Impact Events</div>
+                        <div id="news-events" style="font-size: 16px; font-weight: 700; color: #dc2626;">0</div>
+                    </div>
+                </div>
+
+                <!-- News Headlines -->
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="rss" style="width: 14px; height: 14px; color: #ea580c;"></i>
+                        Latest Headlines (XAUUSD)
+                    </div>
+                    <div id="news-headlines" style="font-size: 13px; color: var(--dark); line-height: 1.8;">
+                        <div style="padding: 6px 0; border-bottom: 1px solid var(--border);">Loading news...</div>
+                    </div>
+                </div>
+
+                <!-- Economic Calendar Warning -->
+                <div id="calendar-warning" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="alert-triangle" style="width: 18px; height: 18px; color: #dc2626;"></i>
+                        <span id="calendar-warning-text" style="font-size: 13px; color: #dc2626;">High-impact event upcoming - Trading paused</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Economic Calendar Card -->
+            <div class="card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="calendar" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark);">Economic Calendar</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Upcoming high-impact events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="calendar-events" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="text-align: center; padding: 30px; color: var(--gray-500);">
+                        <i data-lucide="calendar-check" style="width: 32px; height: 32px;"></i>
+                        <p style="margin-top: 12px;">No high-impact events scheduled</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Legend -->
+            <div class="card">
+                <h3 style="font-size: 16px; font-weight: 600; color: var(--dark); margin-bottom: 16px;">Impact Legend</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">HIGH</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">Major market-moving event</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #fef3c7; color: #d97706; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">MEDIUM</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">Moderate volatility expected</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">LOW</span>
+                        <span style="font-size: 13px; color: var(--gray-600);">Minimal market impact</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Responsive Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const mainContent = document.querySelector('.main');
+
+        // Desktop: Toggle collapsed state
+        function toggleSidebarCollapse() {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 1024) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', openSidebar);
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebar);
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        if (sidebarCollapseBtn) {
+            sidebarCollapseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebarCollapse();
+            });
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                closeSidebar();
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        function updateNewsAnalysis() {
+            $.get('/api/news?symbol=XAUUSD', function(data) {
+                const sentiment = data.sentiment || 'NEUTRAL';
+                const sentimentEl = $('#news-sentiment');
+                sentimentEl.text(sentiment);
+                
+                if (sentiment === 'BULLISH') sentimentEl.css('color', '#4ade80');
+                else if (sentiment === 'BEARISH') sentimentEl.css('color', '#f87171');
+                else sentimentEl.css('color', '#fbbf24');
+                
+                const confidence = Math.round((data.confidence || 0.5) * 100);
+                $('#news-confidence').text(confidence + '%');
+                $('#news-count').text(data.news_count || 0);
+                
+                const headlines = data.headlines || [];
+                if (headlines.length > 0) {
+                    let headlinesHtml = '';
+                    headlines.forEach(function(headline) {
+                        const icon = data.sentiment === 'BULLISH' ? '📈' : data.sentiment === 'BEARISH' ? '📉' : '📊';
+                        headlinesHtml += '<div style="padding: 8px 0; border-bottom: 1px solid var(--border);">' + icon + ' ' + headline + '</div>';
+                    });
+                    $('#news-headlines').html(headlinesHtml);
+                } else {
+                    $('#news-headlines').html('<div style="padding: 6px 0;">No recent news available</div>');
+                }
+                
+                if (data.has_high_impact_event && data.event) {
+                    $('#calendar-warning').show();
+                    $('#calendar-warning-text').text('High-impact event: ' + (data.event.event || 'Unknown') + ' (' + (data.event.currency || '') + ')');
+                } else {
+                    $('#calendar-warning').hide();
+                }
+            });
+        }
+
+        function updateEconomicCalendar() {
+            $.get('/api/calendar', function(data) {
+                const events = data.events || [];
+                $('#news-events').text(events.length);
+                
+                if (events.length > 0) {
+                    $('#news-events').css('color', '#f87171');
+                    
+                    let eventsHtml = '';
+                    events.forEach(function(event) {
+                        const impactColor = event.impact === 'high' ? '#dc2626' : event.impact === 'medium' ? '#d97706' : '#16a34a';
+                        const impactBg = event.impact === 'high' ? '#fef2f2' : event.impact === 'medium' ? '#fef3c7' : '#dcfce7';
+                        
+                        eventsHtml += `
+                        <div style="background: var(--gray-100); border-radius: 10px; padding: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);">
+                            <div>
+                                <div style="font-weight: 600; color: var(--dark); margin-bottom: 4px;">${event.event || 'Unknown Event'}</div>
+                                <div style="font-size: 12px; color: var(--gray-500);">${event.currency || ''} • ${event.time || ''}</div>
+                            </div>
+                            <span style="background: ${impactBg}; color: ${impactColor}; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase;">${event.impact || 'unknown'}</span>
+                        </div>`;
+                    });
+                    
+                    $('#calendar-events').html(eventsHtml);
+                } else {
+                    $('#news-events').css('color', '#4ade80');
+                    $('#calendar-events').html(`
+                        <div style="text-align: center; padding: 30px; color: var(--gray-500);">
+                            <i data-lucide="calendar-check" style="width: 32px; height: 32px;"></i>
+                            <p style="margin-top: 12px;">No high-impact events scheduled</p>
+                        </div>
+                    `);
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        $('#refresh-news').click(function() {
+            $(this).find('i').addClass('animate-spin');
+            updateNewsAnalysis();
+            updateEconomicCalendar();
+            setTimeout(function() {
+                $('#refresh-news i').removeClass('animate-spin');
+                lucide.createIcons();
+            }, 1000);
+        });
+
+        // Initial load
+        updateNewsAnalysis();
+        updateEconomicCalendar();
+
+        // Refresh every 5 minutes
+        setInterval(function() {
+            updateNewsAnalysis();
+            updateEconomicCalendar();
+        }, 300000);
+
+        // Apply saved theme from dashboard
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>

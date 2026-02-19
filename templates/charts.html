@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Market Charts - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0052ff;
+            --primary-dark: #0041cc;
+            --primary-light: #e8f0ff;
+            --success: #00c853;
+            --success-light: #e8f9ef;
+            --danger: #ff3b30;
+            --danger-light: #ffebea;
+            --warning: #ff9500;
+            --warning-light: #fff4e5;
+            --dark: #0a1628;
+            --gray-900: #1a2332;
+            --gray-800: #2d3748;
+            --gray-700: #4a5568;
+            --gray-600: #5b6b8b;
+            --gray-500: #718096;
+            --gray-400: #a0aec0;
+            --gray-300: #cbd5e0;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --card-bg: #1e222d;
+            --sidebar-bg: #0a1628;
+            --main-bg: #131722;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --text-muted: #718096;
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="light"] {
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --main-bg: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+
+        [data-theme="light"] .chart-header { background: #f8fafc; border-bottom-color: #e2e8f0; }
+        [data-theme="light"] .chart-card { background: #ffffff; border-color: #e2e8f0; }
+        [data-theme="light"] .symbol-details h3 { color: #0f172a; }
+        [data-theme="light"] .header { background: #ffffff; border-bottom-color: #e2e8f0; }
+        [data-theme="light"] .page-title { color: #0f172a; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--main-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Sidebar - Always dark */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: #0b0e11;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+
+        /* Collapsed Sidebar (Desktop) */
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 24px 8px;
+        }
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .nav-section-title,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+        .sidebar.collapsed .user-card {
+            justify-content: center;
+            padding: 8px;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        .main.sidebar-collapsed {
+            margin-left: 70px;
+        }
+
+        /* Sidebar Collapse Button (Desktop) */
+        .sidebar-collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .sidebar-collapse-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #ffffff;
+        }
+        .sidebar-collapse-btn i {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Hamburger Menu Button */
+        .menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-primary);
+        }
+        .menu-toggle:hover {
+            background: var(--gray-700);
+        }
+        .menu-toggle i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Sidebar Close Button (mobile) */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: 24px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            transition: all 0.2s;
+        }
+        .sidebar-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .sidebar-close i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i { color: white; width: 22px; height: 22px; }
+        .sidebar-logo-text { font-size: 20px; font-weight: 700; color: #ffffff; }
+        .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #363a45; border-radius: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+        .nav-section { margin-bottom: 24px; }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #b7bdc6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+        .nav-item.active { background: var(--primary); color: #ffffff; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; flex-shrink: 0; }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info { flex: 1; }
+        .user-name { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .user-role { font-size: 12px; color: #848e9c; }
+
+        /* Main Content */
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+            background: var(--main-bg);
+            transition: background 0.3s, margin-left 0.3s;
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: none;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0) !important;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar.collapsed {
+                width: 280px;
+            }
+            .sidebar-collapse-btn {
+                display: none !important;
+            }
+            .sidebar-close {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: flex !important;
+            }
+            .main, .main.sidebar-collapsed {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 85vw;
+                max-width: 300px;
+                padding: 20px 12px;
+            }
+            .header {
+                padding: 0 16px;
+                height: 60px;
+            }
+            .page-title {
+                font-size: 16px;
+            }
+            .theme-toggle-label {
+                display: none;
+            }
+            .theme-toggle {
+                padding: 8px;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: #1e222d;
+            border-bottom: 1px solid #2a2e39;
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timeframe-group {
+            display: flex;
+            background: #2a2e39;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .tf-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #848e9c;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .tf-btn:hover { color: #fff; }
+        .tf-btn.active { background: var(--primary); color: white; }
+
+        .refresh-btn {
+            background: #2a2e39;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #848e9c;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover { background: #363a45; color: #fff; }
+        .refresh-btn i { width: 18px; height: 18px; }
+
+        /* Charts Container */
+        .charts-container {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 16px;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: #1e222d;
+            border-radius: 12px;
+            border: 1px solid #2a2e39;
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2e39;
+        }
+
+        .chart-symbol-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .symbol-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .symbol-icon.gold { background: linear-gradient(135deg, #ffd700 0%, #ffb800 100%); }
+        .symbol-icon.eur { background: linear-gradient(135deg, #003399 0%, #0052b4 100%); }
+        .symbol-icon.gbp { background: linear-gradient(135deg, #012169 0%, #1e3a8a 100%); }
+        .symbol-icon.jpy { background: linear-gradient(135deg, #bc002d 0%, #dc2626 100%); }
+        .symbol-icon.btc { background: linear-gradient(135deg, #f7931a 0%, #ff9500 100%); }
+
+        .symbol-details h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .symbol-name {
+            font-size: 12px;
+            color: #848e9c;
+        }
+
+        .chart-price-info {
+            text-align: right;
+        }
+
+        .current-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .price-change {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .price-change.up { color: #0ecb81; }
+        .price-change.down { color: #f6465d; }
+        .price-change i { width: 14px; height: 14px; }
+
+        .chart-body {
+            height: 320px;
+            padding: 0;
+        }
+
+        .chart-footer {
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #2a2e39;
+            background: #1a1e29;
+        }
+
+        .chart-stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .chart-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-stat-label {
+            font-size: 11px;
+            color: #848e9c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-stat-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        .position-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .position-badge.none { background: #2a2e39; color: #848e9c; }
+        .position-badge.buy { background: rgba(14, 203, 129, 0.15); color: #0ecb81; }
+        .position-badge.sell { background: rgba(246, 70, 93, 0.15); color: #f6465d; }
+
+        /* Live indicator */
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(14, 203, 129, 0.15);
+            color: #0ecb81;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #0ecb81;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .charts-container { grid-template-columns: 1fr; padding: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .charts-container { padding: 8px; gap: 12px; }
+            .chart-header { padding: 12px; }
+            .chart-title { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebar-close" title="Close Menu">
+            <i data-lucide="x"></i>
+        </button>
+        <a href="/" class="sidebar-logo" style="text-decoration: none;">
+            <div class="sidebar-logo-icon"><i data-lucide="bot"></i></div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">
+            <i data-lucide="chevrons-left"></i>
+            <span>Collapse</span>
+        </button>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="/logs" class="nav-item"><i data-lucide="file-text"></i><span>Logs</span></a>
+                <a href="/charts" class="nav-item active"><i data-lucide="candlestick-chart"></i><span>Charts</span></a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item"><i data-lucide="brain"></i><span>AI Tools</span></a>
+                <a href="/signals" class="nav-item"><i data-lucide="target"></i><span>Trade Signals</span></a>
+                <a href="/news" class="nav-item"><i data-lucide="newspaper"></i><span>News & Events</span></a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item"><i data-lucide="user"></i><span>Profile</span></a>
+                <a href="/connect_mt5" class="nav-item"><i data-lucide="link"></i><span>MT5 Connection</span></a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ username[0]|upper if username else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-toggle" id="menu-toggle" title="Open Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="page-title">
+                    <i data-lucide="candlestick-chart"></i>
+                    Live Market Charts
+                    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="timeframe-group">
+                    <button class="tf-btn" data-tf="M1">M1</button>
+                    <button class="tf-btn" data-tf="M5">M5</button>
+                    <button class="tf-btn active" data-tf="M15">M15</button>
+                    <button class="tf-btn" data-tf="H1">H1</button>
+                    <button class="tf-btn" data-tf="H4">H4</button>
+                </div>
+                <button class="refresh-btn" id="refresh-charts" title="Refresh Charts">
+                    <i data-lucide="refresh-cw"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="charts-container">
+            <!-- XAUUSD Chart -->
+            <div class="chart-card" data-symbol="XAUUSD">
+                <div class="chart-header">
+                    <div class="chart-symbol-info">
+                        <div class="symbol-icon gold">🥇</div>
+                        <div class="symbol-details">
+                            <h3>XAUUSD</h3>
+                            <span class="symbol-name">Gold / US Dollar</span>
+                        </div>
+                    </div>
+                    <div class="chart-price-info">
+                        <div class="current-price" id="price-XAUUSD">--</div>
+                        <div class="price-change up" id="change-XAUUSD">
+                            <i data-lucide="trending-up"></i>
+                            <span>--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body" id="chart-XAUUSD"></div>
+                <div class="chart-footer">
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">High</span>
+                            <span class="chart-stat-value" id="high-XAUUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Low</span>
+                            <span class="chart-stat-value" id="low-XAUUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Spread</span>
+                            <span class="chart-stat-value" id="spread-XAUUSD">--</span>
+                        </div>
+                    </div>
+                    <div class="position-badge none" id="position-XAUUSD">No Position</div>
+                </div>
+            </div>
+
+            <!-- EURUSD Chart -->
+            <div class="chart-card" data-symbol="EURUSD">
+                <div class="chart-header">
+                    <div class="chart-symbol-info">
+                        <div class="symbol-icon eur">🇪🇺</div>
+                        <div class="symbol-details">
+                            <h3>EURUSD</h3>
+                            <span class="symbol-name">Euro / US Dollar</span>
+                        </div>
+                    </div>
+                    <div class="chart-price-info">
+                        <div class="current-price" id="price-EURUSD">--</div>
+                        <div class="price-change up" id="change-EURUSD">
+                            <i data-lucide="trending-up"></i>
+                            <span>--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body" id="chart-EURUSD"></div>
+                <div class="chart-footer">
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">High</span>
+                            <span class="chart-stat-value" id="high-EURUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Low</span>
+                            <span class="chart-stat-value" id="low-EURUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Spread</span>
+                            <span class="chart-stat-value" id="spread-EURUSD">--</span>
+                        </div>
+                    </div>
+                    <div class="position-badge none" id="position-EURUSD">No Position</div>
+                </div>
+            </div>
+
+            <!-- GBPUSD Chart -->
+            <div class="chart-card" data-symbol="GBPUSD">
+                <div class="chart-header">
+                    <div class="chart-symbol-info">
+                        <div class="symbol-icon gbp">🇬🇧</div>
+                        <div class="symbol-details">
+                            <h3>GBPUSD</h3>
+                            <span class="symbol-name">British Pound / US Dollar</span>
+                        </div>
+                    </div>
+                    <div class="chart-price-info">
+                        <div class="current-price" id="price-GBPUSD">--</div>
+                        <div class="price-change up" id="change-GBPUSD">
+                            <i data-lucide="trending-up"></i>
+                            <span>--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body" id="chart-GBPUSD"></div>
+                <div class="chart-footer">
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">High</span>
+                            <span class="chart-stat-value" id="high-GBPUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Low</span>
+                            <span class="chart-stat-value" id="low-GBPUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Spread</span>
+                            <span class="chart-stat-value" id="spread-GBPUSD">--</span>
+                        </div>
+                    </div>
+                    <div class="position-badge none" id="position-GBPUSD">No Position</div>
+                </div>
+            </div>
+
+            <!-- USDJPY Chart -->
+            <div class="chart-card" data-symbol="USDJPY">
+                <div class="chart-header">
+                    <div class="chart-symbol-info">
+                        <div class="symbol-icon jpy">🇯🇵</div>
+                        <div class="symbol-details">
+                            <h3>USDJPY</h3>
+                            <span class="symbol-name">US Dollar / Japanese Yen</span>
+                        </div>
+                    </div>
+                    <div class="chart-price-info">
+                        <div class="current-price" id="price-USDJPY">--</div>
+                        <div class="price-change up" id="change-USDJPY">
+                            <i data-lucide="trending-up"></i>
+                            <span>--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body" id="chart-USDJPY"></div>
+                <div class="chart-footer">
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">High</span>
+                            <span class="chart-stat-value" id="high-USDJPY">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Low</span>
+                            <span class="chart-stat-value" id="low-USDJPY">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Spread</span>
+                            <span class="chart-stat-value" id="spread-USDJPY">--</span>
+                        </div>
+                    </div>
+                    <div class="position-badge none" id="position-USDJPY">No Position</div>
+                </div>
+            </div>
+
+            <!-- BTCUSD Chart -->
+            <div class="chart-card" data-symbol="BTCUSD">
+                <div class="chart-header">
+                    <div class="chart-symbol-info">
+                        <div class="symbol-icon btc">₿</div>
+                        <div class="symbol-details">
+                            <h3>BTCUSD</h3>
+                            <span class="symbol-name">Bitcoin / US Dollar</span>
+                        </div>
+                    </div>
+                    <div class="chart-price-info">
+                        <div class="current-price" id="price-BTCUSD">--</div>
+                        <div class="price-change up" id="change-BTCUSD">
+                            <i data-lucide="trending-up"></i>
+                            <span>--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-body" id="chart-BTCUSD"></div>
+                <div class="chart-footer">
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">High</span>
+                            <span class="chart-stat-value" id="high-BTCUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Low</span>
+                            <span class="chart-stat-value" id="low-BTCUSD">--</span>
+                        </div>
+                        <div class="chart-stat">
+                            <span class="chart-stat-label">Spread</span>
+                            <span class="chart-stat-value" id="spread-BTCUSD">--</span>
+                        </div>
+                    </div>
+                    <div class="position-badge none" id="position-BTCUSD">No Position</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Responsive Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const mainContent = document.querySelector('.main');
+
+        // Desktop: Toggle collapsed state
+        function toggleSidebarCollapse() {
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed', isCollapsed);
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore collapsed state from localStorage
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 1024) {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('sidebar-collapsed');
+        }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', openSidebar);
+        }
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebar);
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+        if (sidebarCollapseBtn) {
+            sidebarCollapseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleSidebarCollapse();
+            });
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                closeSidebar();
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('sidebar-collapsed');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        // AI Analyzed Pairs
+        const AI_PAIRS = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'BTCUSD'];
+        let currentTimeframe = 'M15';
+        let charts = {};
+        let candleSeries = {};
+
+        // Initialize charts
+        function initCharts() {
+            AI_PAIRS.forEach(symbol => {
+                const container = document.getElementById(`chart-${symbol}`);
+                if (!container) return;
+
+                const chart = LightweightCharts.createChart(container, {
+                    width: container.clientWidth,
+                    height: 320,
+                    layout: {
+                        background: { type: 'solid', color: '#1e222d' },
+                        textColor: '#848e9c',
+                    },
+                    grid: {
+                        vertLines: { color: '#2a2e39' },
+                        horzLines: { color: '#2a2e39' },
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                        vertLine: { color: '#4a4e59', width: 1, style: 2 },
+                        horzLine: { color: '#4a4e59', width: 1, style: 2 },
+                    },
+                    rightPriceScale: {
+                        borderColor: '#2a2e39',
+                        scaleMargins: { top: 0.1, bottom: 0.1 },
+                    },
+                    timeScale: {
+                        borderColor: '#2a2e39',
+                        timeVisible: true,
+                        secondsVisible: false,
+                    },
+                    handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
+                    handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
+                });
+
+                const series = chart.addCandlestickSeries({
+                    upColor: '#0ecb81',
+                    downColor: '#f6465d',
+                    borderUpColor: '#0ecb81',
+                    borderDownColor: '#f6465d',
+                    wickUpColor: '#0ecb81',
+                    wickDownColor: '#f6465d',
+                });
+
+                charts[symbol] = chart;
+                candleSeries[symbol] = series;
+
+                // Resize observer
+                const resizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        chart.applyOptions({ 
+                            width: entry.contentRect.width,
+                            height: 320
+                        });
+                    }
+                });
+                resizeObserver.observe(container);
+            });
+        }
+
+        // Fetch chart data
+        function fetchChartData(symbol, timeframe) {
+            return $.ajax({
+                url: '/api/chart_data',
+                type: 'GET',
+                data: { symbol: symbol, timeframe: timeframe, bars: 200 },
+                dataType: 'json'
+            });
+        }
+
+        // Update all charts
+        async function updateCharts() {
+            for (const symbol of AI_PAIRS) {
+                try {
+                    const response = await fetchChartData(symbol, currentTimeframe);
+                    if (response.success && response.data && candleSeries[symbol]) {
+                        const chartData = response.data.map(bar => ({
+                            time: bar.time,
+                            open: bar.open,
+                            high: bar.high,
+                            low: bar.low,
+                            close: bar.close
+                        }));
+                        candleSeries[symbol].setData(chartData);
+
+                        // Update price info
+                        if (chartData.length > 0) {
+                            const lastBar = chartData[chartData.length - 1];
+                            const prevBar = chartData.length > 1 ? chartData[chartData.length - 2] : lastBar;
+                            const change = lastBar.close - prevBar.close;
+                            const changePercent = ((change / prevBar.close) * 100).toFixed(2);
+                            const isUp = change >= 0;
+
+                            $(`#price-${symbol}`).text(formatPrice(symbol, lastBar.close));
+                            $(`#change-${symbol}`).removeClass('up down').addClass(isUp ? 'up' : 'down')
+                                .html(`<i data-lucide="trending-${isUp ? 'up' : 'down'}"></i><span>${isUp ? '+' : ''}${changePercent}%</span>`);
+                            $(`#high-${symbol}`).text(formatPrice(symbol, Math.max(...chartData.slice(-20).map(b => b.high))));
+                            $(`#low-${symbol}`).text(formatPrice(symbol, Math.min(...chartData.slice(-20).map(b => b.low))));
+
+                            lucide.createIcons();
+                        }
+
+                        // Update spread
+                        if (response.spread) {
+                            $(`#spread-${symbol}`).text(response.spread.toFixed(1));
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${symbol}:`, error);
+                }
+            }
+        }
+
+        // Fetch positions
+        function fetchPositions() {
+            $.ajax({
+                url: '/get_mt5_data',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.positions) {
+                        // Reset all to no position
+                        AI_PAIRS.forEach(symbol => {
+                            $(`#position-${symbol}`).removeClass('buy sell').addClass('none').text('No Position');
+                        });
+
+                        // Update with actual positions
+                        response.positions.forEach(pos => {
+                            const symbol = pos.symbol;
+                            if (AI_PAIRS.includes(symbol)) {
+                                const isBuy = pos.type === 0 || pos.type === 'BUY';
+                                const profit = pos.profit || 0;
+                                const pClass = isBuy ? 'buy' : 'sell';
+                                const pText = `${isBuy ? 'BUY' : 'SELL'} ${pos.volume} | $${profit.toFixed(2)}`;
+                                $(`#position-${symbol}`).removeClass('none buy sell').addClass(pClass).text(pText);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        // Format price based on symbol
+        function formatPrice(symbol, price) {
+            if (symbol.includes('XAU') || symbol.includes('GOLD')) {
+                return price.toFixed(2);
+            } else if (symbol.includes('BTC')) {
+                return price.toFixed(2);
+            } else if (symbol.includes('JPY')) {
+                return price.toFixed(3);
+            } else {
+                return price.toFixed(5);
+            }
+        }
+
+        // Timeframe buttons
+        $('.tf-btn').click(function() {
+            $('.tf-btn').removeClass('active');
+            $(this).addClass('active');
+            currentTimeframe = $(this).data('tf');
+            updateCharts();
+        });
+
+        // Refresh button
+        $('#refresh-charts').click(function() {
+            $(this).find('i').addClass('spin');
+            updateCharts().then(() => {
+                setTimeout(() => $(this).find('i').removeClass('spin'), 500);
+            });
+        });
+
+        // Add spin animation
+        const style = document.createElement('style');
+        style.textContent = `.spin { animation: spin 0.5s linear; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
+        document.head.appendChild(style);
+
+        // Initialize
+        $(document).ready(function() {
+            initCharts();
+            updateCharts();
+            fetchPositions();
+
+            // Auto-refresh every 10 seconds
+            setInterval(updateCharts, 10000);
+            setInterval(fetchPositions, 5000);
+        });
+
+        // Apply saved theme from dashboard
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>

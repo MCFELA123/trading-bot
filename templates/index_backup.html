@@ -1,0 +1,2513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TradingBot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0052ff;
+            --primary-dark: #0041cc;
+            --primary-light: #e8f0ff;
+            --success: #00c853;
+            --success-light: #e8f9ef;
+            --danger: #ff3b30;
+            --danger-light: #ffebea;
+            --warning: #ff9500;
+            --warning-light: #fff4e5;
+            --dark: #0a1628;
+            --gray-900: #1a2332;
+            --gray-800: #2d3748;
+            --gray-700: #4a5568;
+            --gray-600: #5b6b8b;
+            --gray-500: #718096;
+            --gray-400: #a0aec0;
+            --gray-300: #cbd5e0;
+            --gray-200: #e2e8f0;
+            --gray-100: #f7fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-100);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--dark);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 32px;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo-icon i {
+            color: white;
+            width: 22px;
+            height: 22px;
+        }
+
+        .sidebar-logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 16px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        /* Main Content */
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--gray-600);
+        }
+
+        .header-btn:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+
+        .header-btn i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            color: var(--gray-700);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-light);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .logout-btn i {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Dashboard Content */
+        .dashboard {
+            padding: 32px;
+        }
+
+        /* MT5 Alert */
+        .mt5-alert {
+            width: 100%;
+            background: var(--warning-light);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .mt5-alert-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mt5-alert-content i {
+            width: 24px;
+            height: 24px;
+            color: var(--warning);
+        }
+
+        .mt5-alert-content strong {
+            color: var(--gray-900);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .mt5-alert-content p {
+            color: var(--gray-600);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-connect-mt5 {
+            padding: 10px 20px;
+            background: var(--warning);
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-connect-mt5:hover {
+            background: #e68600;
+        }
+
+        .btn-connect-mt5 i {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Bot Status Card */
+        .status-card {
+            width: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-icon i {
+            width: 32px;
+            height: 32px;
+            color: var(--primary);
+        }
+
+        .status-info h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.running {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-badge.stopped {
+            background: var(--gray-600);
+            color: white;
+        }
+
+        .bot-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-start {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #00b348;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,200,83,0.3);
+        }
+
+        .btn-stop {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #e63529;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255,59,48,0.3);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .stat-icon.blue {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .stat-icon.purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* P/L Card */
+        .pl-card {
+            width: 100%;
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .pl-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .pl-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .pl-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .pl-value.positive {
+            color: var(--success);
+        }
+
+        .pl-value.negative {
+            color: var(--danger);
+        }
+
+        .pl-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .pl-progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .pl-progress-bar.positive {
+            background: linear-gradient(90deg, var(--success) 0%, #00e676 100%);
+        }
+
+        .pl-progress-bar.negative {
+            background: linear-gradient(90deg, var(--danger) 0%, #ff6b60 100%);
+        }
+
+        /* Positions Table */
+        .positions-card {
+            width: 100%;
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .positions-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .positions-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .positions-count {
+            padding: 4px 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .positions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .positions-table th {
+            text-align: left;
+            padding: 14px 24px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .positions-table td {
+            padding: 16px 24px;
+            font-size: 14px;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .positions-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .positions-table tr:hover {
+            background: var(--gray-100);
+        }
+
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .type-badge.buy {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .type-badge.sell {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .profit-cell {
+            font-weight: 600;
+        }
+
+        .profit-cell.positive {
+            color: var(--success);
+        }
+
+        .profit-cell.negative {
+            color: var(--danger);
+        }
+
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        .empty-state i {
+            width: 48px;
+            height: 48px;
+            color: var(--gray-400);
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            color: var(--gray-500);
+            font-size: 14px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 16px;
+            }
+            .status-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .status-left {
+                flex-direction: column;
+            }
+            .bot-controls {
+                width: 100%;
+            }
+            .bot-controls .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .mt5-alert {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header {
+                padding: 0 16px;
+            }
+        }
+
+        /* Toggle Switch Styles */
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #22c55e;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        .toggle-switch input:disabled + .toggle-slider {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .loss-protection-disabled {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <i data-lucide="bot"></i>
+            </div>
+            <span class="sidebar-logo-text">TradingBot</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="/" class="nav-item active">
+                    <i data-lucide="layout-dashboard"></i>
+                    Dashboard
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i data-lucide="file-text"></i>
+                    Logs
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Trading</div>
+                <a href="/ai_tools" class="nav-item">
+                    <i data-lucide="brain"></i>
+                    AI Tools
+                </a>
+                <a href="/signals" class="nav-item">
+                    <i data-lucide="target"></i>
+                    Trade Signals
+                </a>
+                <a href="/news" class="nav-item">
+                    <i data-lucide="newspaper"></i>
+                    News & Events
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <a href="/profile" class="nav-item">
+                    <i data-lucide="user"></i>
+                    Profile
+                </a>
+                <a href="/connect_mt5" class="nav-item">
+                    <i data-lucide="link"></i>
+                    MT5 Connection
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">{{ username[0]|upper if username else 'U' }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ username }}</div>
+                    <div class="user-role">Trader</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <h1 class="page-title">Dashboard</h1>
+            <div class="header-right">
+                <button class="header-btn" id="refresh-btn" title="Refresh">
+                    <i data-lucide="refresh-cw"></i>
+                </button>
+                <a href="/logout" class="logout-btn">
+                    <i data-lucide="log-out"></i>
+                    Sign Out
+                </a>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- MT5 Alert -->
+            <div class="mt5-alert" id="mt5-alert" style="display: none;">
+                <div class="mt5-alert-content">
+                    <i data-lucide="alert-circle"></i>
+                    <div>
+                        <strong>MT5 Not Connected</strong>
+                        <p>Connect your MetaTrader 5 account to start trading</p>
+                    </div>
+                </div>
+                <a href="/connect_mt5" class="btn-connect-mt5">
+                    <i data-lucide="link"></i>
+                    Connect Now
+                </a>
+            </div>
+
+            <!-- Bot Status -->
+            <div class="status-card">
+                <div class="status-left">
+                    <div class="status-icon">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="status-info">
+                        <h3>Trading Bot Status</h3>
+                        <div class="status-value">
+                            ⚡ ULTRA-FAST SCALPING MODE
+                            <span class="status-badge stopped" id="status-badge">{{ status }}</span>
+                        </div>
+                        <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span style="background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">M1 TIMEFRAME</span>
+                            <span style="background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">1 SEC CHECK</span>
+                            <span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">QUICK PROFIT</span>
+                            <span style="background: #fce7f3; color: #9d174d; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">AUTO BREAKEVEN</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bot-controls">
+                    <button class="btn btn-start" id="start-btn">
+                        <i data-lucide="play"></i>
+                        Start Bot
+                    </button>
+                    <button class="btn btn-stop" id="stop-btn">
+                        <i data-lucide="square"></i>
+                        Stop Bot
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Account Balance</span>
+                        <div class="stat-icon blue">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="balance">$0.00</div>
+                    <div class="stat-change">Available funds</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Equity</span>
+                        <div class="stat-icon green">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="equity">$0.00</div>
+                    <div class="stat-change">Current value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Free Margin</span>
+                        <div class="stat-icon purple">
+                            <i data-lucide="gem"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="free-margin">$0.00</div>
+                    <div class="stat-change">Available to trade</div>
+                </div>
+            </div>
+
+            <!-- P/L Card -->
+            <div class="pl-card">
+                <div class="pl-header">
+                    <span class="pl-title">Total Profit / Loss</span>
+                    <span class="pl-value positive" id="total-pl">$0.00</span>
+                </div>
+                <div class="pl-progress">
+                    <div class="pl-progress-bar positive" id="pl-bar" style="width: 50%;"></div>
+                </div>
+            </div>
+
+            <!-- Loss Protection Status Card -->
+            <div class="loss-protection-card" id="loss-protection-card" style="
+                width: 100%;
+                background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 2px solid #fca5a5;
+                box-shadow: var(--shadow);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="shield-alert" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 2px;">🛡️ Loss Protection Status</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Daily limits & safety controls</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <!-- Toggle Button -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 13px; color: var(--gray-600);">Protection:</span>
+                            <label class="toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 26px;">
+                                <input type="checkbox" id="loss-protection-toggle" checked style="opacity: 0; width: 0; height: 0;">
+                                <span class="toggle-slider" style="
+                                    position: absolute;
+                                    cursor: pointer;
+                                    top: 0; left: 0; right: 0; bottom: 0;
+                                    background-color: #e5e7eb;
+                                    transition: .3s;
+                                    border-radius: 26px;
+                                "></span>
+                            </label>
+                        </div>
+                        <div id="protection-status-badge" style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #dcfce7; color: #16a34a;">
+                            ACTIVE ✓
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protection Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                    <div style="background: #ffffff; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Daily Loss</div>
+                        <div id="daily-loss" style="font-size: 16px; font-weight: 700; color: #16a34a;">$0.00</div>
+                        <div style="font-size: 10px; color: var(--gray-400);">Limit: 3%</div>
+                    </div>
+                    <div style="background: #ffffff; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Drawdown</div>
+                        <div id="drawdown" style="font-size: 16px; font-weight: 700; color: #16a34a;">0%</div>
+                        <div style="font-size: 10px; color: var(--gray-400);">Max: 10%</div>
+                    </div>
+                    <div style="background: #ffffff; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Consecutive Losses</div>
+                        <div id="consecutive-losses" style="font-size: 16px; font-weight: 700; color: #16a34a;">0</div>
+                        <div style="font-size: 10px; color: var(--gray-400);">Max: 5</div>
+                    </div>
+                    <div style="background: #ffffff; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Today's Trades</div>
+                        <div id="trades-today" style="font-size: 16px; font-weight: 700; color: #2563eb;">0</div>
+                        <div id="win-loss-today" style="font-size: 10px; color: var(--gray-400);">W: 0 / L: 0</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bars -->
+                <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="color: var(--gray-600);">Daily Loss Limit</span>
+                            <span id="daily-loss-percent" style="font-weight: 600; color: var(--gray-700);">0% / 3%</span>
+                        </div>
+                        <div style="height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                            <div id="daily-loss-bar" style="height: 100%; width: 0%; background: #22c55e; border-radius: 4px; transition: all 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span style="color: var(--gray-600);">Drawdown Limit</span>
+                            <span id="drawdown-percent" style="font-weight: 600; color: var(--gray-700);">0% / 10%</span>
+                        </div>
+                        <div style="height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                            <div id="drawdown-bar" style="height: 100%; width: 0%; background: #22c55e; border-radius: 4px; transition: all 0.3s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPLICIT TRADE SIGNALS CARD -->
+            <div class="signals-card" id="signals-card" style="
+                width: 100%;
+                background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 2px solid #22c55e;
+                box-shadow: var(--shadow);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="target" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 2px;">🎯 Explicit Trade Signals</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">High-probability setups with exact entry/SL/TP</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div id="session-badge" style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #dbeafe; color: #2563eb;">
+                            LONDON
+                        </div>
+                        <button id="refresh-signals" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                            Scan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Signals Container -->
+                <div id="signals-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="text-align: center; padding: 40px; color: var(--gray-500);">
+                        <i data-lucide="loader" style="width: 32px; height: 32px; animation: spin 1s linear infinite;"></i>
+                        <p style="margin-top: 12px;">Scanning markets for high-probability setups...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Card -->
+            <div class="ai-insights-card" id="ai-insights-card" style="
+                width: 100%;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid var(--border);
+                box-shadow: var(--shadow);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="brain" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 2px;">🤖 AI Trading Intelligence</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Powered by OpenAI GPT-4</p>
+                        </div>
+                    </div>
+                    <button id="refresh-ai" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- AI Stats Row -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--gray-500); margin-bottom: 4px;">Market Sentiment</div>
+                        <div id="ai-sentiment" style="font-size: 18px; font-weight: 700; color: #d97706;">NEUTRAL</div>
+                        <div id="ai-sentiment-confidence" style="font-size: 11px; color: var(--gray-500);">0%</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--gray-500); margin-bottom: 4px;">Trading Bias</div>
+                        <div id="ai-trading-bias" style="font-size: 18px; font-weight: 700; color: #7c3aed;">WAIT</div>
+                        <div id="ai-bias-strength" style="font-size: 11px; color: var(--gray-500);">Weak</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--gray-500); margin-bottom: 4px;">AI SL (pips)</div>
+                        <div id="ai-sl" style="font-size: 18px; font-weight: 700; color: #dc2626;">20</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--gray-500); margin-bottom: 4px;">AI TP (pips)</div>
+                        <div id="ai-tp" style="font-size: 18px; font-weight: 700; color: #16a34a;">40</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 12px; color: var(--gray-500); margin-bottom: 4px;">Risk %</div>
+                        <div id="ai-risk" style="font-size: 18px; font-weight: 700; color: #2563eb;">1.0%</div>
+                    </div>
+                </div>
+
+                <!-- AI Insights -->
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="lightbulb" style="width: 14px; height: 14px; color: #d97706;"></i>
+                        AI Strategy Insights
+                    </div>
+                    <p id="ai-insights-text" style="font-size: 14px; color: var(--dark); line-height: 1.6; margin: 0;">
+                        AI is learning from your trades. Execute more trades to unlock personalized optimization recommendations.
+                    </p>
+                    <p id="ai-adjustment-text" style="font-size: 13px; color: var(--gray-500); margin-top: 10px; margin-bottom: 0; font-style: italic;"></p>
+                </div>
+            </div>
+
+            <!-- News & Market Intelligence Card -->
+            <div class="news-card" id="news-card" style="
+                width: 100%;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid var(--border);
+                box-shadow: var(--shadow);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="newspaper" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 2px;">📰 Market News & Events</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Real-time news sentiment analysis</p>
+                        </div>
+                    </div>
+                    <button id="refresh-news" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- News Sentiment Stats -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">News Sentiment</div>
+                        <div id="news-sentiment" style="font-size: 16px; font-weight: 700; color: #d97706;">NEUTRAL</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">Confidence</div>
+                        <div id="news-confidence" style="font-size: 16px; font-weight: 700; color: #2563eb;">50%</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">News Count</div>
+                        <div id="news-count" style="font-size: 16px; font-weight: 700; color: #7c3aed;">0</div>
+                    </div>
+                    <div style="background: var(--gray-100); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">High Impact Events</div>
+                        <div id="news-events" style="font-size: 16px; font-weight: 700; color: #dc2626;">0</div>
+                    </div>
+                </div>
+
+                <!-- News Headlines -->
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="rss" style="width: 14px; height: 14px; color: #ea580c;"></i>
+                        Latest Headlines (XAUUSD)
+                    </div>
+                    <div id="news-headlines" style="font-size: 13px; color: var(--dark); line-height: 1.8;">
+                        <div style="padding: 6px 0; border-bottom: 1px solid var(--border);">Loading news...</div>
+                    </div>
+                </div>
+
+                <!-- Economic Calendar Warning -->
+                <div id="calendar-warning" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-top: 16px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="alert-triangle" style="width: 18px; height: 18px; color: #dc2626;"></i>
+                        <span id="calendar-warning-text" style="font-size: 13px; color: #dc2626;">High-impact event upcoming - Trading paused</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Session Optimizer Section -->
+            <div style="
+                width: 100%;
+                background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #0284c7;
+                box-shadow: var(--shadow-lg);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="clock" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 2px;">⏰ AI Session Optimizer</h3>
+                            <p style="font-size: 13px; color: #7dd3fc;">AI determines best time to trade for profits</p>
+                        </div>
+                    </div>
+                    <button id="check-session" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        Analyze
+                    </button>
+                </div>
+
+                <!-- Session Stats Row -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 11px; color: #7dd3fc; margin-bottom: 4px;">Session Quality</div>
+                        <div id="session-quality" style="font-size: 18px; font-weight: 700; color: #fbbf24;">CHECKING...</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 11px; color: #7dd3fc; margin-bottom: 4px;">Recommendation</div>
+                        <div id="session-recommendation" style="font-size: 16px; font-weight: 700; color: #4ade80;">—</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 11px; color: #7dd3fc; margin-bottom: 4px;">Risk Level</div>
+                        <div id="session-risk" style="font-size: 18px; font-weight: 700; color: #60a5fa;">—</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 11px; color: #7dd3fc; margin-bottom: 4px;">Volatility</div>
+                        <div id="session-volatility" style="font-size: 18px; font-weight: 700; color: #c084fc;">—</div>
+                    </div>
+                </div>
+
+                <!-- Should Trade Status -->
+                <div id="session-status" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                        <div id="session-indicator" style="width: 12px; height: 12px; background: #fbbf24; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <div id="session-status-text" style="font-size: 15px; font-weight: 600; color: white;">Analyzing trading conditions...</div>
+                    </div>
+                    <div id="session-reason" style="font-size: 13px; color: #bae6fd;"></div>
+                </div>
+
+                <!-- Best Hours Display -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div style="background: rgba(34,197,94,0.2); border-radius: 10px; padding: 14px; border: 1px solid rgba(34,197,94,0.3);">
+                        <div style="font-size: 12px; color: #86efac; margin-bottom: 8px; font-weight: 600;">✅ Best Hours Today (UTC)</div>
+                        <div id="best-hours" style="font-size: 13px; color: #4ade80; line-height: 1.6;">Loading...</div>
+                    </div>
+                    <div style="background: rgba(239,68,68,0.2); border-radius: 10px; padding: 14px; border: 1px solid rgba(239,68,68,0.3);">
+                        <div style="font-size: 12px; color: #fca5a5; margin-bottom: 8px; font-weight: 600;">⚠️ Avoid These Hours (UTC)</div>
+                        <div id="avoid-hours" style="font-size: 13px; color: #f87171; line-height: 1.6;">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Special Notes -->
+                <div id="session-notes" style="display: none; background: rgba(251,191,36,0.2); border-radius: 10px; padding: 14px; margin-top: 16px; border: 1px solid rgba(251,191,36,0.3);">
+                    <div style="font-size: 12px; color: #fcd34d; margin-bottom: 6px; font-weight: 600;">📝 Special Notes</div>
+                    <div id="session-notes-text" style="font-size: 13px; color: #fef3c7;"></div>
+                </div>
+            </div>
+
+            <!-- AI Entry Finder Section -->
+            <div style="
+                width: 100%;
+                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #4338ca;
+                box-shadow: var(--shadow-lg);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="target" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 2px;">🎯 AI Entry Point Finder</h3>
+                            <p style="font-size: 13px; color: #a5b4fc;">AI auto-scans multiple pairs for high-probability entries</p>
+                        </div>
+                    </div>
+                    <button id="scan-entries" style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        🔍 Start Auto-Scan
+                    </button>
+                </div>
+
+                <!-- AI Entry Signal Display -->
+                <div id="ai-entry-container" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                    <div id="ai-entry-status" style="text-align: center; padding: 20px;">
+                        <div style="font-size: 16px; color: #a5b4fc; margin-bottom: 8px;">Click "Scan Now" to find AI entry points</div>
+                        <div style="font-size: 13px; color: #818cf8;">AI analyzes technical indicators, price action, and news</div>
+                    </div>
+                    
+                    <div id="ai-entry-signal" style="display: none;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #a5b4fc; margin-bottom: 4px;">Direction</div>
+                                <div id="entry-direction" style="font-size: 18px; font-weight: 700; color: #4ade80;">—</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #a5b4fc; margin-bottom: 4px;">Quality Score</div>
+                                <div id="entry-quality" style="font-size: 18px; font-weight: 700; color: #fbbf24;">—/10</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #a5b4fc; margin-bottom: 4px;">Risk:Reward</div>
+                                <div id="entry-rr" style="font-size: 18px; font-weight: 700; color: #60a5fa;">—</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #a5b4fc; margin-bottom: 4px;">Confidence</div>
+                                <div id="entry-confidence" style="font-size: 18px; font-weight: 700; color: #c084fc;">—%</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                            <div style="background: rgba(34,197,94,0.2); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(34,197,94,0.4);">
+                                <div style="font-size: 11px; color: #86efac; margin-bottom: 4px;">Entry Price</div>
+                                <div id="entry-price" style="font-size: 14px; font-weight: 600; color: #4ade80;">—</div>
+                            </div>
+                            <div style="background: rgba(239,68,68,0.2); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(239,68,68,0.4);">
+                                <div style="font-size: 11px; color: #fca5a5; margin-bottom: 4px;">Stop Loss</div>
+                                <div id="entry-sl" style="font-size: 14px; font-weight: 600; color: #f87171;">—</div>
+                            </div>
+                            <div style="background: rgba(59,130,246,0.2); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(59,130,246,0.4);">
+                                <div style="font-size: 11px; color: #93c5fd; margin-bottom: 4px;">Take Profit</div>
+                                <div id="entry-tp" style="font-size: 14px; font-weight: 600; color: #60a5fa;">—</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                            <div style="font-size: 12px; color: #a5b4fc; margin-bottom: 8px; font-weight: 600;">Confluences:</div>
+                            <div id="entry-confluences" style="font-size: 13px; color: #e0e7ff; line-height: 1.8;"></div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button id="execute-entry" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; color: white; padding: 12px 28px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                ✅ Execute Trade
+                            </button>
+                            <button id="skip-entry" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #a5b4fc; padding: 12px 28px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                                ⏭️ Skip
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="ai-no-entry" style="display: none; text-align: center; padding: 20px;">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+                        <div id="no-entry-reason" style="font-size: 14px; color: #fbbf24;">No high-quality entries found right now</div>
+                        <div style="font-size: 12px; color: #818cf8; margin-top: 8px;">AI will continue monitoring for opportunities</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Positions Table -->
+            <div class="positions-card">
+                <div class="positions-header">
+                    <span class="positions-title">Open Positions</span>
+                    <span class="positions-count" id="positions-count">0</span>
+                </div>
+                <table class="positions-table">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Type</th>
+                            <th>Volume</th>
+                            <th>Open Price</th>
+                            <th>S/L</th>
+                            <th>T/P</th>
+                            <th>Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-body">
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i data-lucide="inbox"></i>
+                                    <p>No open positions</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Symbol Management Card -->
+            <div class="symbol-management-card" id="symbol-management-card" style="
+                width: 100%;
+                background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+                border-radius: var(--radius-lg);
+                padding: 24px;
+                margin-top: 24px;
+                border: 2px solid #0284c7;
+                box-shadow: var(--shadow);
+            ">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="settings-2" style="width: 24px; height: 24px; color: white;"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 2px;">📊 Trading Symbols</h3>
+                            <p style="font-size: 13px; color: var(--gray-500);">Select which symbols the bot will trade</p>
+                        </div>
+                    </div>
+                    <button id="refresh-symbols" style="background: var(--gray-100); border: 1px solid var(--border); color: var(--gray-700); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <!-- Current Symbols -->
+                <div style="background: var(--white); border-radius: 12px; padding: 16px; border: 1px solid var(--border); margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 12px;">Active Trading Symbols:</div>
+                    <div id="active-symbols" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <span style="color: var(--gray-500); font-size: 13px;">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Add Symbol -->
+                <div style="background: var(--white); border-radius: 12px; padding: 16px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 12px;">Add New Symbol:</div>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="symbol-select" style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: var(--white);">
+                            <option value="">Select a symbol...</option>
+                            <option value="XAUUSDm">XAUUSDm (Gold)</option>
+                            <option value="BTCUSDm">BTCUSDm (Bitcoin)</option>
+                            <option value="EURUSDm">EURUSDm (Euro)</option>
+                            <option value="GBPUSDm">GBPUSDm (Pound)</option>
+                            <option value="USDJPYm">USDJPYm (Yen)</option>
+                            <option value="AUDUSDm">AUDUSDm (Aussie)</option>
+                            <option value="USDCHFm">USDCHFm (Swiss)</option>
+                            <option value="NZDUSDm">NZDUSDm (Kiwi)</option>
+                            <option value="XAGUSDm">XAGUSDm (Silver)</option>
+                            <option value="USOILm">USOILm (Oil)</option>
+                            <option value="ETHUSDm">ETHUSDm (Ethereum)</option>
+                            <option value="US30m">US30m (Dow Jones)</option>
+                            <option value="GER40m">GER40m (DAX)</option>
+                        </select>
+                        <button id="add-symbol-btn" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                            Add
+                        </button>
+                    </div>
+                    <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;">Max 6 symbols allowed for optimal performance</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function formatCurrency(value) {
+            return '$' + parseFloat(value || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function updateStatusBadge(running) {
+            const badge = document.getElementById('status-badge');
+            if (running) {
+                badge.textContent = 'Running';
+                badge.className = 'status-badge running';
+            } else {
+                badge.textContent = 'Stopped';
+                badge.className = 'status-badge stopped';
+            }
+        }
+
+        function checkMT5Status() {
+            $.get('/api/mt5_status', function(data) {
+                if (!data.connected) {
+                    $('#mt5-alert').show();
+                } else {
+                    $('#mt5-alert').hide();
+                }
+            });
+        }
+
+        function updateAccount() {
+            $.get('/account', function(data) {
+                if (data.balance !== undefined) {
+                    $('#balance').text(formatCurrency(data.balance));
+                    $('#equity').text(formatCurrency(data.equity));
+                    $('#free-margin').text(formatCurrency(data.free_margin));
+                }
+            });
+        }
+
+        function updatePositions() {
+            $.get('/positions', function(data) {
+                const tbody = $('#positions-body');
+                $('#positions-count').text(data.length);
+                
+                if (!data || data.length === 0) {
+                    tbody.html(`
+                        <tr><td colspan="7">
+                            <div class="empty-state">
+                                <i data-lucide="inbox"></i>
+                                <p>No open positions</p>
+                            </div>
+                        </td></tr>
+                    `);
+                    lucide.createIcons();
+                    return;
+                }
+                
+                let html = '';
+                let totalPL = 0;
+                
+                data.forEach(pos => {
+                    totalPL += pos.profit;
+                    const profitClass = pos.profit >= 0 ? 'positive' : 'negative';
+                    const typeClass = pos.type === 'BUY' ? 'buy' : 'sell';
+                    
+                    html += `
+                        <tr>
+                            <td><strong>#${pos.ticket}</strong></td>
+                            <td><span class="type-badge ${typeClass}">${pos.type}</span></td>
+                            <td>${pos.volume}</td>
+                            <td>${pos.price.toFixed(5)}</td>
+                            <td>${pos.sl.toFixed(5)}</td>
+                            <td>${pos.tp.toFixed(5)}</td>
+                            <td class="profit-cell ${profitClass}">${formatCurrency(pos.profit)}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.html(html);
+                
+                const plValue = $('#total-pl');
+                const plBar = $('#pl-bar');
+                plValue.text(formatCurrency(totalPL));
+                
+                if (totalPL >= 0) {
+                    plValue.removeClass('negative').addClass('positive');
+                    plBar.removeClass('negative').addClass('positive');
+                } else {
+                    plValue.removeClass('positive').addClass('negative');
+                    plBar.removeClass('positive').addClass('negative');
+                }
+            });
+        }
+
+        function updateStatus() {
+            $.get('/status', function(data) {
+                updateStatusBadge(data.running);
+            });
+        }
+
+        $(document).ready(function() {
+            checkMT5Status();
+            updateAccount();
+            updatePositions();
+            updateStatus();
+            
+            setInterval(function() {
+                updateAccount();
+                updatePositions();
+                updateStatus();
+            }, 3000);
+        });
+
+        $('#start-btn').click(function() {
+            $.get('/start_bot', function(data) {
+                alert(data.message || 'Bot started!');
+                // Immediately update badge based on response
+                if (data.running !== undefined) {
+                    updateStatusBadge(data.running);
+                }
+                // Also poll for status
+                setTimeout(updateStatus, 500);
+            });
+        });
+
+        $('#stop-btn').click(function() {
+            $.get('/stop_bot', function(data) {
+                alert(data.message || 'Bot stopped!');
+                // Immediately update badge based on response
+                if (data.running !== undefined) {
+                    updateStatusBadge(data.running);
+                }
+                // Also poll for status
+                setTimeout(updateStatus, 500);
+            });
+        });
+
+        $('#refresh-btn').click(function() {
+            updateAccount();
+            updatePositions();
+            updateStatus();
+        });
+
+        // AI Insights Functions
+        function updateAIInsights() {
+            $.get('/api/ai_insights', function(data) {
+                if (data.has_insights) {
+                    $('#ai-insights-text').text(data.insights || 'AI is analyzing your trading patterns...');
+                    $('#ai-adjustment-text').text(data.strategy_adjustment || '');
+                    
+                    if (data.optimized_params) {
+                        $('#ai-sl').text(data.optimized_params.sl_pips || '20');
+                        $('#ai-tp').text(data.optimized_params.tp_pips || '40');
+                        $('#ai-risk').text((data.optimized_params.risk_percent || 1.0) + '%');
+                    }
+                } else {
+                    $('#ai-insights-text').text('AI is learning from your trades. Execute more trades to unlock personalized optimization recommendations.');
+                    $('#ai-adjustment-text').text('');
+                }
+            }).fail(function() {
+                $('#ai-insights-text').text('Connect OpenAI API to enable AI-powered trading intelligence.');
+            });
+        }
+
+        function updateAISentiment() {
+            // Use the new LIVE sentiment API
+            $.get('/api/sentiment/live?symbol=XAUUSDm&refresh=false', function(data) {
+                const sentiment = data.sentiment || 'NEUTRAL';
+                const confidence = data.confidence || 0.5;
+                const tradingBias = data.trading_bias || 'WAIT';
+                const strength = data.strength || 'WEAK';
+                const outlook = data.short_term_outlook || '';
+                const keyFactors = data.key_factors || [];
+                
+                const sentimentEl = $('#ai-sentiment');
+                const biasEl = $('#ai-trading-bias');
+                
+                sentimentEl.text(sentiment);
+                $('#ai-sentiment-confidence').text(Math.round(confidence * 100) + '% confidence');
+                biasEl.text(tradingBias);
+                $('#ai-bias-strength').text(strength);
+                
+                // Color based on sentiment
+                if (sentiment === 'BULLISH') {
+                    sentimentEl.css('color', '#4ade80');
+                } else if (sentiment === 'BEARISH') {
+                    sentimentEl.css('color', '#f87171');
+                } else {
+                    sentimentEl.css('color', '#fbbf24');
+                }
+                
+                // Color based on trading bias
+                if (tradingBias === 'BUY') {
+                    biasEl.css('color', '#22c55e');
+                } else if (tradingBias === 'SELL') {
+                    biasEl.css('color', '#ef4444');
+                } else {
+                    biasEl.css('color', '#7c3aed');
+                }
+                
+                // Update outlook if we have it
+                if (outlook && keyFactors.length > 0) {
+                    const factorsList = keyFactors.slice(0, 3).map(f => `• ${f}`).join('<br>');
+                    $('#ai-adjustment-text').html(`<strong>Outlook:</strong> ${outlook}<br><br><strong>Key Factors:</strong><br>${factorsList}`);
+                }
+            }).fail(function() {
+                $('#ai-sentiment').text('N/A').css('color', '#9ca3af');
+                $('#ai-trading-bias').text('N/A').css('color', '#9ca3af');
+            });
+        }
+
+        function updateAIParams() {
+            $.get('/api/ai_params', function(data) {
+                if (data.sl_pips) $('#ai-sl').text(data.sl_pips);
+                if (data.tp_pips) $('#ai-tp').text(data.tp_pips);
+                if (data.risk_percent) $('#ai-risk').text(data.risk_percent + '%');
+            });
+        }
+
+        // Refresh AI button
+        $('#refresh-ai').click(function() {
+            updateAIInsights();
+            updateAISentiment();
+            updateAIParams();
+        });
+
+        // Initial AI load
+        updateAIInsights();
+        updateAISentiment();
+        updateAIParams();
+
+        // Refresh AI insights every 30 seconds (less frequent to save API calls)
+        setInterval(function() {
+            updateAIInsights();
+            updateAIParams();
+        }, 30000);
+
+        // Refresh sentiment every 60 seconds
+        setInterval(function() {
+            updateAISentiment();
+        }, 60000);
+
+        // ============== AI SESSION OPTIMIZER FUNCTIONS ==============
+        function updateSessionAnalysis() {
+            $.get('/api/ai/session?symbol=XAUUSDm', function(data) {
+                // Update session quality
+                const quality = data.session_quality || 'UNKNOWN';
+                const qualityEl = $('#session-quality');
+                qualityEl.text(quality);
+                
+                // Color based on quality
+                if (quality === 'EXCELLENT') {
+                    qualityEl.css('color', '#4ade80');
+                } else if (quality === 'GOOD') {
+                    qualityEl.css('color', '#22d3ee');
+                } else if (quality === 'FAIR') {
+                    qualityEl.css('color', '#fbbf24');
+                } else if (quality === 'POOR' || quality === 'AVOID') {
+                    qualityEl.css('color', '#f87171');
+                } else {
+                    qualityEl.css('color', '#a5b4fc');
+                }
+                
+                // Update recommendation
+                const recommendation = data.recommendation || 'UNKNOWN';
+                const recEl = $('#session-recommendation');
+                recEl.text(recommendation.replace('_', ' '));
+                
+                if (recommendation === 'TRADE_NOW') {
+                    recEl.css('color', '#4ade80');
+                } else if (recommendation === 'WAIT') {
+                    recEl.css('color', '#fbbf24');
+                } else if (recommendation === 'REDUCED_SIZE') {
+                    recEl.css('color', '#fb923c');
+                } else if (recommendation === 'AVOID_TODAY') {
+                    recEl.css('color', '#f87171');
+                }
+                
+                // Update risk and volatility
+                const risk = data.risk_level || 'MEDIUM';
+                const riskEl = $('#session-risk');
+                riskEl.text(risk);
+                if (risk === 'LOW') riskEl.css('color', '#4ade80');
+                else if (risk === 'HIGH') riskEl.css('color', '#f87171');
+                else riskEl.css('color', '#fbbf24');
+                
+                const volatility = data.expected_volatility || 'NORMAL';
+                const volEl = $('#session-volatility');
+                volEl.text(volatility);
+                if (volatility === 'EXTREME') volEl.css('color', '#f87171');
+                else if (volatility === 'HIGH') volEl.css('color', '#fb923c');
+                else if (volatility === 'LOW') volEl.css('color', '#94a3b8');
+                else volEl.css('color', '#4ade80');
+                
+                // Update status indicator
+                const shouldTrade = data.should_trade_now;
+                const indicator = $('#session-indicator');
+                const statusText = $('#session-status-text');
+                
+                if (shouldTrade && (recommendation === 'TRADE_NOW' || recommendation === 'REDUCED_SIZE')) {
+                    indicator.css('background', '#4ade80');
+                    statusText.text('✅ OPTIMAL TIME TO TRADE');
+                    statusText.css('color', '#4ade80');
+                } else if (recommendation === 'WAIT') {
+                    indicator.css('background', '#fbbf24');
+                    statusText.text('⏳ WAIT FOR BETTER CONDITIONS');
+                    statusText.css('color', '#fbbf24');
+                } else {
+                    indicator.css('background', '#f87171');
+                    statusText.text('❌ NOT RECOMMENDED TO TRADE NOW');
+                    statusText.css('color', '#f87171');
+                }
+                
+                // Update reason
+                $('#session-reason').text(data.reason || '');
+                
+                // Update best/avoid hours
+                const bestHours = data.best_hours || [];
+                const avoidHours = data.avoid_hours || [];
+                
+                if (bestHours.length > 0) {
+                    $('#best-hours').text(bestHours.map(h => h + ':00').join(', '));
+                } else {
+                    $('#best-hours').text('No specific recommendations');
+                }
+                
+                if (avoidHours.length > 0) {
+                    $('#avoid-hours').text(avoidHours.map(h => h + ':00').join(', '));
+                } else {
+                    $('#avoid-hours').text('No specific warnings');
+                }
+                
+                // Update special notes
+                const notes = data.special_notes || [];
+                if (notes.length > 0) {
+                    $('#session-notes').show();
+                    $('#session-notes-text').html(notes.map(n => '• ' + n).join('<br>'));
+                } else {
+                    $('#session-notes').hide();
+                }
+                
+                // Show better time if waiting
+                if (data.better_time_today && recommendation === 'WAIT') {
+                    $('#session-reason').append('<br><strong>Better time: ' + data.better_time_today + '</strong>');
+                }
+                
+                lucide.createIcons();
+                
+            }).fail(function() {
+                $('#session-quality').text('ERROR').css('color', '#f87171');
+                $('#session-status-text').text('Failed to analyze session');
+            });
+        }
+        
+        // Check session button
+        $('#check-session').click(function() {
+            $(this).html('<i data-lucide="loader-2" style="width: 14px; height: 14px; animation: spin 1s linear infinite;"></i> Analyzing...');
+            updateSessionAnalysis();
+            setTimeout(() => {
+                $(this).html('<i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Analyze');
+                lucide.createIcons();
+            }, 2000);
+        });
+        
+        // Initial session analysis
+        updateSessionAnalysis();
+        
+        // Refresh session every 5 minutes
+        setInterval(function() {
+            updateSessionAnalysis();
+        }, 300000);
+
+        // ============== AI ENTRY FINDER - AUTO SCANNING & AUTO EXECUTION ==============
+        const entrySymbols = ['XAUUSDm', 'BTCUSDm', 'EURUSDm', 'GBPUSDm', 'XAGUSDm', 'USDJPYm', 'AUDUSDm'];
+        let currentSymbolIndex = 0;
+        let autoScanEnabled = false;
+        let autoScanInterval = null;
+        const SCAN_INTERVAL_MS = 15000; // 15 seconds between scans
+        const MIN_QUALITY_FOR_AUTO_TRADE = 7; // Minimum quality to auto-execute
+        
+        function scanForEntries() {
+            const symbol = entrySymbols[currentSymbolIndex];
+            currentSymbolIndex = (currentSymbolIndex + 1) % entrySymbols.length;
+            
+            $('#ai-entry-status').show().html(`
+                <div style="font-size: 16px; color: #a5b4fc; margin-bottom: 8px;">
+                    <i data-lucide="loader-2" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i>
+                    Scanning ${symbol}...
+                </div>
+                <div style="font-size: 13px; color: #818cf8;">Auto-scan: ${autoScanEnabled ? '🟢 ON' : '🔴 OFF'} | Pairs: ${entrySymbols.length}</div>
+            `);
+            $('#ai-entry-signal').hide();
+            $('#ai-no-entry').hide();
+            lucide.createIcons();
+            
+            $.get('/api/ai/entry?symbol=' + symbol, function(data) {
+                if (data.has_entry) {
+                    const quality = data.quality_score || 8;
+                    
+                    // Store for execution with symbol
+                    window.currentEntry = data;
+                    window.currentEntry.symbol = symbol;
+                    
+                    // AUTO-EXECUTE if quality is high enough and auto-scan is enabled
+                    if (autoScanEnabled && quality >= MIN_QUALITY_FOR_AUTO_TRADE) {
+                        console.log(`🚀 Auto-executing trade on ${symbol} with quality ${quality}/10`);
+                        autoExecuteTrade(symbol, data);
+                        return;
+                    }
+                    
+                    // Show entry signal for manual confirmation
+                    $('#ai-entry-status').hide();
+                    $('#ai-no-entry').hide();
+                    $('#ai-entry-signal').show();
+                    
+                    const direction = data.direction || 'BUY';
+                    const dirEl = $('#entry-direction');
+                    dirEl.text(direction + ' ' + symbol);
+                    if (direction === 'BUY') {
+                        dirEl.css('color', '#4ade80');
+                    } else {
+                        dirEl.css('color', '#f87171');
+                    }
+                    
+                    $('#entry-quality').text(quality + '/10');
+                    $('#entry-rr').text(data.risk_reward || '1:2');
+                    $('#entry-confidence').text(Math.round((data.confidence || 0.7) * 100) + '%');
+                    
+                    const entryPrice = data.entry_price;
+                    const sl = data.stop_loss;
+                    const tp = data.take_profit;
+                    
+                    $('#entry-price').text(entryPrice ? entryPrice.toFixed(2) : '—');
+                    $('#entry-sl').text(sl ? sl.toFixed(2) : '—');
+                    $('#entry-tp').text(tp ? tp.toFixed(2) : '—');
+                    
+                    // Confluences
+                    const confluences = data.confluences || [];
+                    const confHtml = confluences.map(c => `<div style="padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">✓ ${c}</div>`).join('');
+                    $('#entry-confluences').html(confHtml || 'Multiple technical confirmations');
+                    
+                    lucide.createIcons();
+                } else {
+                    // No entry found - show status and continue scanning
+                    $('#ai-entry-status').hide();
+                    $('#ai-entry-signal').hide();
+                    $('#ai-no-entry').show();
+                    $('#no-entry-reason').html(`
+                        <strong>${symbol}:</strong> ${data.reason || 'No setup'}<br>
+                        <span style="font-size: 11px; color: #6366f1;">Next scan in ${SCAN_INTERVAL_MS/1000}s...</span>
+                    `);
+                }
+            }).fail(function() {
+                $('#ai-entry-status').html(`
+                    <div style="font-size: 16px; color: #fca5a5; margin-bottom: 8px;">❌ Error scanning ${symbol}</div>
+                    <div style="font-size: 13px; color: #818cf8;">Retrying next pair...</div>
+                `);
+            });
+        }
+        
+        // Auto-execute trade function
+        function autoExecuteTrade(symbol, entry) {
+            $('#ai-entry-status').show().html(`
+                <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
+                <div style="font-size: 14px; color: #4ade80;">Auto-executing ${entry.direction || 'BUY'} on ${symbol}...</div>
+            `);
+            $('#ai-entry-signal').hide();
+            $('#ai-no-entry').hide();
+            
+            $.ajax({
+                url: '/api/ai/entry-trade',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    symbol: symbol,
+                    lot_size: null  // AI calculates intelligent lot based on account/quality/confidence
+                }),
+                success: function(result) {
+                    if (result.success) {
+                        console.log(`✅ Auto-trade executed on ${symbol}! Ticket: ${result.ticket} | Lot: ${result.lot_size || 'AI'}`);
+                        $('#ai-entry-status').show().html(`
+                            <div style="font-size: 40px; margin-bottom: 12px;">✅</div>
+                            <div style="font-size: 16px; color: #4ade80;">Auto-trade executed!</div>
+                            <div style="font-size: 13px; color: #818cf8; margin-top: 4px;">${symbol} - Ticket #${result.ticket}</div>
+                            <div style="font-size: 12px; color: #6366f1; margin-top: 8px;">Continuing scan...</div>
+                        `);
+                        updatePositions();
+                    } else {
+                        console.log(`❌ Auto-trade failed on ${symbol}: ${result.reason}`);
+                        $('#ai-entry-status').show().html(`
+                            <div style="font-size: 16px; color: #f87171;">Trade failed: ${result.reason}</div>
+                            <div style="font-size: 12px; color: #818cf8; margin-top: 8px;">Continuing scan...</div>
+                        `);
+                    }
+                    window.currentEntry = null;
+                },
+                error: function() {
+                    console.log(`❌ Error auto-executing trade on ${symbol}`);
+                    $('#ai-entry-status').show().html(`
+                        <div style="font-size: 16px; color: #f87171;">Error executing trade</div>
+                        <div style="font-size: 12px; color: #818cf8; margin-top: 8px;">Continuing scan...</div>
+                    `);
+                    window.currentEntry = null;
+                }
+            });
+        }
+        
+        // Start/Stop auto-scanning
+        function startAutoScan() {
+            if (autoScanInterval) clearInterval(autoScanInterval);
+            autoScanEnabled = true;
+            currentSymbolIndex = 0;
+            scanForEntries(); // Start immediately
+            autoScanInterval = setInterval(scanForEntries, SCAN_INTERVAL_MS);
+            console.log('🔄 Auto-scan started - scanning every ' + (SCAN_INTERVAL_MS/1000) + ' seconds');
+            $('#scan-entries').html('⏹️ Stop Auto-Scan').css('background', 'linear-gradient(135deg, #ef4444, #dc2626)');
+        }
+        
+        function stopAutoScan() {
+            autoScanEnabled = false;
+            if (autoScanInterval) {
+                clearInterval(autoScanInterval);
+                autoScanInterval = null;
+            }
+            console.log('⏸️ Auto-scan stopped');
+            $('#scan-entries').html('🔍 Start Auto-Scan').css('background', 'linear-gradient(135deg, #6366f1, #4f46e5)');
+            $('#ai-entry-status').show().html(`
+                <div style="font-size: 16px; color: #a5b4fc; margin-bottom: 8px;">Auto-scan paused</div>
+                <div style="font-size: 13px; color: #818cf8;">Click "Start Auto-Scan" to resume</div>
+            `);
+        }
+        
+        // Scan entries button - toggles auto-scan
+        $('#scan-entries').click(function() {
+            if (autoScanEnabled && autoScanInterval) {
+                stopAutoScan();
+            } else {
+                startAutoScan();
+            }
+        });
+        
+        // Start auto-scanning 5 seconds after page load
+        setTimeout(startAutoScan, 5000);
+        
+        // Execute entry trade (manual override)
+        $('#execute-entry').click(function() {
+            if (!window.currentEntry) return;
+            
+            const symbol = window.currentEntry.symbol || 'XAUUSDm';
+            $(this).prop('disabled', true).text('Executing...');
+            
+            $.ajax({
+                url: '/api/ai/entry-trade',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    symbol: symbol,
+                    lot_size: null  // AI calculates intelligent lot based on account/quality/confidence
+                }),
+                success: function(result) {
+                    if (result.success) {
+                        alert('✅ Trade executed! Ticket: ' + result.ticket + ' | Lot: ' + (result.lot_size || 'AI'));
+                        $('#ai-entry-signal').hide();
+                        $('#ai-entry-status').show().html(`
+                            <div style="font-size: 40px; margin-bottom: 12px;">✅</div>
+                            <div style="font-size: 16px; color: #4ade80;">Trade executed!</div>
+                        `);
+                        updatePositions();
+                    } else {
+                        alert('❌ Trade failed: ' + result.reason);
+                    }
+                    $('#execute-entry').prop('disabled', false).text('✅ Execute Trade');
+                    window.currentEntry = null;
+                },
+                error: function() {
+                    alert('❌ Error executing trade');
+                    $('#execute-entry').prop('disabled', false).text('✅ Execute Trade');
+                }
+            });
+        });
+        
+        // Skip entry - just hide and continue
+        $('#skip-entry').click(function() {
+            $('#ai-entry-signal').hide();
+            $('#ai-no-entry').show();
+            $('#no-entry-reason').text('Entry skipped - continuing scan...');
+            window.currentEntry = null;
+        });
+
+        // ============== NEWS & MARKET SCRAPING FUNCTIONS ==============
+        function updateNewsAnalysis() {
+            $.get('/api/news?symbol=XAUUSDm', function(data) {
+                // Update sentiment
+                const sentiment = data.sentiment || 'NEUTRAL';
+                const sentimentEl = $('#news-sentiment');
+                sentimentEl.text(sentiment);
+                
+                if (sentiment === 'BULLISH') {
+                    sentimentEl.css('color', '#4ade80');
+                } else if (sentiment === 'BEARISH') {
+                    sentimentEl.css('color', '#f87171');
+                } else {
+                    sentimentEl.css('color', '#fbbf24');
+                }
+                
+                // Update confidence
+                const confidence = Math.round((data.confidence || 0.5) * 100);
+                $('#news-confidence').text(confidence + '%');
+                
+                // Update news count
+                $('#news-count').text(data.news_count || 0);
+                
+                // Update headlines
+                const headlines = data.headlines || [];
+                if (headlines.length > 0) {
+                    let headlinesHtml = '';
+                    headlines.forEach(function(headline, index) {
+                        const icon = data.sentiment === 'BULLISH' ? '📈' : 
+                                    data.sentiment === 'BEARISH' ? '📉' : '📊';
+                        headlinesHtml += '<div style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">' + 
+                                        icon + ' ' + headline + '</div>';
+                    });
+                    $('#news-headlines').html(headlinesHtml);
+                } else {
+                    $('#news-headlines').html('<div style="padding: 6px 0;">No recent news available</div>');
+                }
+                
+                // Show event warning if needed
+                if (data.has_high_impact_event && data.event) {
+                    $('#calendar-warning').show();
+                    $('#calendar-warning-text').text('⚠️ High-impact event: ' + (data.event.event || 'Unknown') + 
+                                                     ' (' + (data.event.currency || '') + ')');
+                } else {
+                    $('#calendar-warning').hide();
+                }
+                
+            }).fail(function() {
+                $('#news-headlines').html('<div style="padding: 6px 0; color: #f87171;">Failed to load news</div>');
+            });
+        }
+
+        function updateEconomicCalendar() {
+            $.get('/api/calendar', function(data) {
+                const events = data.events || [];
+                $('#news-events').text(events.length);
+                
+                if (events.length > 0) {
+                    $('#news-events').css('color', '#f87171');  // Red for warning
+                } else {
+                    $('#news-events').css('color', '#4ade80');  // Green for safe
+                }
+            }).fail(function() {
+                $('#news-events').text('?').css('color', '#9ca3af');
+            });
+        }
+
+        // Refresh news button
+        $('#refresh-news').click(function() {
+            $(this).find('i').addClass('animate-spin');
+            updateNewsAnalysis();
+            updateEconomicCalendar();
+            setTimeout(function() {
+                $('#refresh-news i').removeClass('animate-spin');
+            }, 1000);
+        });
+
+        // Initial news load
+        updateNewsAnalysis();
+        updateEconomicCalendar();
+
+        // Refresh news every 5 minutes (300000ms) - longer interval to avoid rate limits
+        setInterval(function() {
+            updateNewsAnalysis();
+            updateEconomicCalendar();
+        }, 300000);
+
+        // ========== LOSS PROTECTION STATUS ==========
+        function updateLossProtection() {
+            $.get('/api/loss-protection', function(data) {
+                if (data && !data.error) {
+                    // Update daily loss
+                    const dailyLoss = data.daily_loss || 0;
+                    const dailyLossPercent = data.daily_loss_percent || 0;
+                    const maxDailyPercent = data.max_daily_loss_percent || 3;
+                    
+                    $('#daily-loss').text('$' + Math.abs(dailyLoss).toFixed(2));
+                    $('#daily-loss-percent').text(dailyLossPercent.toFixed(1) + '% / ' + maxDailyPercent + '%');
+                    
+                    const dailyBarWidth = Math.min((dailyLossPercent / maxDailyPercent) * 100, 100);
+                    $('#daily-loss-bar').css('width', dailyBarWidth + '%');
+                    
+                    // Color coding for daily loss
+                    if (dailyLossPercent >= maxDailyPercent * 0.8) {
+                        $('#daily-loss').css('color', '#dc2626');
+                        $('#daily-loss-bar').css('background', '#dc2626');
+                    } else if (dailyLossPercent >= maxDailyPercent * 0.5) {
+                        $('#daily-loss').css('color', '#d97706');
+                        $('#daily-loss-bar').css('background', '#f59e0b');
+                    } else {
+                        $('#daily-loss').css('color', '#16a34a');
+                        $('#daily-loss-bar').css('background', '#22c55e');
+                    }
+                    
+                    // Update drawdown
+                    const drawdown = data.drawdown || 0;
+                    const maxDrawdown = data.max_drawdown || 10;
+                    
+                    $('#drawdown').text(drawdown.toFixed(1) + '%');
+                    $('#drawdown-percent').text(drawdown.toFixed(1) + '% / ' + maxDrawdown + '%');
+                    
+                    const drawdownBarWidth = Math.min((drawdown / maxDrawdown) * 100, 100);
+                    $('#drawdown-bar').css('width', drawdownBarWidth + '%');
+                    
+                    // Color coding for drawdown
+                    if (drawdown >= maxDrawdown * 0.8) {
+                        $('#drawdown').css('color', '#dc2626');
+                        $('#drawdown-bar').css('background', '#dc2626');
+                    } else if (drawdown >= maxDrawdown * 0.5) {
+                        $('#drawdown').css('color', '#d97706');
+                        $('#drawdown-bar').css('background', '#f59e0b');
+                    } else {
+                        $('#drawdown').css('color', '#16a34a');
+                        $('#drawdown-bar').css('background', '#22c55e');
+                    }
+                    
+                    // Update consecutive losses
+                    const consecLosses = data.consecutive_losses || 0;
+                    const maxConsec = data.max_consecutive || 5;
+                    $('#consecutive-losses').text(consecLosses);
+                    if (consecLosses >= maxConsec - 1) {
+                        $('#consecutive-losses').css('color', '#dc2626');
+                    } else if (consecLosses >= maxConsec / 2) {
+                        $('#consecutive-losses').css('color', '#d97706');
+                    } else {
+                        $('#consecutive-losses').css('color', '#16a34a');
+                    }
+                    
+                    // Update trades today
+                    $('#trades-today').text(data.trades_today || 0);
+                    $('#win-loss-today').text('W: ' + (data.wins_today || 0) + ' / L: ' + (data.losses_today || 0));
+                    
+                    // Update status badge
+                    if (data.emergency_stop) {
+                        $('#protection-status-badge').text('🚨 EMERGENCY STOP').css({
+                            'background': '#fef2f2',
+                            'color': '#dc2626',
+                            'border': '2px solid #dc2626'
+                        });
+                    } else if (!data.can_trade) {
+                        $('#protection-status-badge').text('⏸️ PAUSED').css({
+                            'background': '#fef3c7',
+                            'color': '#d97706',
+                            'border': '2px solid #d97706'
+                        });
+                    } else {
+                        $('#protection-status-badge').text('ACTIVE ✓').css({
+                            'background': '#dcfce7',
+                            'color': '#16a34a',
+                            'border': 'none'
+                        });
+                    }
+                    
+                    // Update toggle switch state
+                    const isEnabled = data.enabled !== false;
+                    $('#loss-protection-toggle').prop('checked', isEnabled);
+                    
+                    // Update UI based on enabled state
+                    if (!isEnabled) {
+                        $('#loss-protection-card').addClass('loss-protection-disabled');
+                        $('#protection-status-badge').text('DISABLED ✗').css({
+                            'background': '#f3f4f6',
+                            'color': '#6b7280',
+                            'border': '1px solid #d1d5db'
+                        });
+                    } else {
+                        $('#loss-protection-card').removeClass('loss-protection-disabled');
+                    }
+                }
+            });
+        }
+
+        // Toggle loss protection handler
+        $(document).on('change', '#loss-protection-toggle', function() {
+            const isEnabled = $(this).is(':checked');
+            const $toggle = $(this);
+            
+            // Disable toggle while processing
+            $toggle.prop('disabled', true);
+            
+            $.ajax({
+                url: '/api/loss-protection/toggle',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ enabled: isEnabled }),
+                success: function(response) {
+                    if (response.success) {
+                        // Update UI immediately
+                        if (response.enabled) {
+                            $('#loss-protection-card').removeClass('loss-protection-disabled');
+                            $('#protection-status-badge').text('ACTIVE ✓').css({
+                                'background': '#dcfce7',
+                                'color': '#16a34a',
+                                'border': 'none'
+                            });
+                        } else {
+                            $('#loss-protection-card').addClass('loss-protection-disabled');
+                            $('#protection-status-badge').text('DISABLED ✗').css({
+                                'background': '#f3f4f6',
+                                'color': '#6b7280',
+                                'border': '1px solid #d1d5db'
+                            });
+                        }
+                    } else {
+                        // Revert toggle on error
+                        $toggle.prop('checked', !isEnabled);
+                        alert('Failed to toggle loss protection');
+                    }
+                },
+                error: function() {
+                    // Revert toggle on error
+                    $toggle.prop('checked', !isEnabled);
+                    alert('Failed to toggle loss protection');
+                },
+                complete: function() {
+                    $toggle.prop('disabled', false);
+                }
+            });
+        });
+
+        // Initial load and interval
+        updateLossProtection();
+        setInterval(updateLossProtection, 5000);
+
+        // ========== EXPLICIT TRADE SIGNALS ==========
+        function updateTradeSignals() {
+            $.get('/api/signals', function(data) {
+                if (data && !data.error) {
+                    // Update session badge
+                    const session = data.session || 'UNKNOWN';
+                    const volatility = data.session_volatility || 'UNKNOWN';
+                    let sessionColor = '#6b7280';
+                    let sessionBg = '#f3f4f6';
+                    
+                    if (session === 'OVERLAP') {
+                        sessionColor = '#16a34a';
+                        sessionBg = '#dcfce7';
+                    } else if (session === 'LONDON' || session === 'NEW_YORK') {
+                        sessionColor = '#2563eb';
+                        sessionBg = '#dbeafe';
+                    } else if (session === 'ASIAN') {
+                        sessionColor = '#d97706';
+                        sessionBg = '#fef3c7';
+                    }
+                    
+                    $('#session-badge').text(session + ' (' + volatility + ')').css({
+                        'background': sessionBg,
+                        'color': sessionColor
+                    });
+                    
+                    // Build signals HTML
+                    const signals = data.signals || [];
+                    let html = '';
+                    
+                    if (signals.length === 0) {
+                        html = `<div style="text-align: center; padding: 40px; color: var(--gray-500);">
+                            <i data-lucide="search" style="width: 32px; height: 32px;"></i>
+                            <p style="margin-top: 12px;">No high-probability setups found right now</p>
+                            <p style="font-size: 12px; margin-top: 4px;">Signals appear when market conditions are optimal</p>
+                        </div>`;
+                    } else {
+                        signals.forEach(function(signal) {
+                            if (signal.signal === 'BUY' || signal.signal === 'SELL') {
+                                const isBuy = signal.signal === 'BUY';
+                                const bgColor = isBuy ? '#f0fdf4' : '#fef2f2';
+                                const borderColor = isBuy ? '#22c55e' : '#ef4444';
+                                const textColor = isBuy ? '#16a34a' : '#dc2626';
+                                const arrow = isBuy ? '↗' : '↘';
+                                
+                                html += `
+                                <div style="background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 12px; padding: 16px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span style="font-size: 28px; font-weight: 800; color: ${textColor};">${arrow} ${signal.signal}</span>
+                                            <span style="font-size: 18px; font-weight: 700; color: var(--dark);">${signal.symbol}</span>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 12px; color: var(--gray-500);">Confidence</div>
+                                            <div style="font-size: 20px; font-weight: 700; color: ${textColor};">${(signal.confidence * 100).toFixed(0)}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;">
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">ENTRY</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--dark);">${signal.entry_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">STOP LOSS</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #dc2626;">${signal.sl_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                            <div style="font-size: 10px; color: #dc2626;">${signal.sl_pips.toFixed(1)} pips</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">TAKE PROFIT</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #16a34a;">${signal.tp_price.toFixed(signal.symbol.includes('JPY') ? 3 : 5)}</div>
+                                            <div style="font-size: 10px; color: #16a34a;">${signal.tp_pips.toFixed(1)} pips</div>
+                                        </div>
+                                        <div style="background: white; padding: 10px; border-radius: 8px; text-align: center;">
+                                            <div style="font-size: 10px; color: var(--gray-500); margin-bottom: 2px;">R:R RATIO</div>
+                                            <div style="font-size: 14px; font-weight: 700; color: #2563eb;">1:${signal.rr_ratio.toFixed(1)}</div>
+                                            <div style="font-size: 10px; color: var(--gray-500);">${signal.lot_size} lots</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: white; padding: 10px; border-radius: 8px;">
+                                        <div style="font-size: 11px; color: var(--gray-500); margin-bottom: 4px;">📊 Trade Reasons:</div>
+                                        <div style="font-size: 12px; color: var(--dark);">${(signal.reasons || []).join(' • ')}</div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 12px; margin-top: 12px; font-size: 11px; color: var(--gray-500);">
+                                        <span>Score: ${signal.score}/10</span>
+                                        <span>Trend: ${(signal.trend_strength * 100).toFixed(0)}%</span>
+                                        <span>MTF: ${(signal.mtf_confidence * 100).toFixed(0)}%</span>
+                                        <span>Vol: ${signal.volume_ratio.toFixed(1)}x</span>
+                                        <span>Regime: ${signal.market_regime}</span>
+                                    </div>
+                                </div>`;
+                            } else if (signal.signal === 'WAIT' || signal.signal === 'NO_TRADE') {
+                                html += `
+                                <div style="background: #f9fafb; border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-size: 16px;">⏸️</span>
+                                        <span style="font-weight: 600; color: var(--gray-700);">${signal.symbol}</span>
+                                    </div>
+                                    <div style="font-size: 13px; color: var(--gray-500);">${signal.reason || 'No signal'}</div>
+                                </div>`;
+                            }
+                        });
+                    }
+                    
+                    $('#signals-container').html(html);
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        // Refresh signals button
+        $('#refresh-signals').click(function() {
+            $(this).find('i').addClass('animate-spin');
+            updateTradeSignals();
+            setTimeout(function() {
+                $('#refresh-signals i').removeClass('animate-spin');
+            }, 1000);
+        });
+
+        // Initial load and interval
+        updateTradeSignals();
+        setInterval(updateTradeSignals, 15000);  // Refresh every 15 seconds
+
+        // Add animation styles
+        $('<style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .animate-spin { animation: spin 1s linear infinite; }</style>').appendTo('head');
+
+        // ========== SYMBOL MANAGEMENT ==========
+        function updateActiveSymbols() {
+            $.get('/api/symbols', function(data) {
+                const symbols = data.symbols || [];
+                const container = $('#active-symbols');
+                
+                if (symbols.length === 0) {
+                    container.html('<span style="color: var(--gray-500); font-size: 13px;">No symbols selected. Add symbols to start trading.</span>');
+                    return;
+                }
+                
+                let html = '';
+                symbols.forEach(function(symbol) {
+                    html += `
+                        <div class="symbol-tag" data-symbol="${symbol}" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); border: 1px solid #3b82f6; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #1e40af;">
+                            ${symbol}
+                            <button class="remove-symbol-btn" data-symbol="${symbol}" style="background: none; border: none; color: #dc2626; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                container.html(html);
+                lucide.createIcons();
+            });
+        }
+        
+        // Add symbol button
+        $('#add-symbol-btn').click(function() {
+            const symbol = $('#symbol-select').val();
+            if (!symbol) {
+                alert('Please select a symbol to add');
+                return;
+            }
+            
+            $(this).prop('disabled', true).text('Adding...');
+            
+            $.ajax({
+                url: '/api/symbols/add',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ symbol: symbol }),
+                success: function(result) {
+                    if (result.success) {
+                        updateActiveSymbols();
+                        $('#symbol-select').val('');
+                    } else {
+                        alert(result.message || 'Failed to add symbol');
+                    }
+                },
+                error: function() {
+                    alert('Error adding symbol');
+                },
+                complete: function() {
+                    $('#add-symbol-btn').prop('disabled', false).html('<i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add');
+                    lucide.createIcons();
+                }
+            });
+        });
+        
+        // Remove symbol button (event delegation)
+        $(document).on('click', '.remove-symbol-btn', function() {
+            const symbol = $(this).data('symbol');
+            if (!confirm('Remove ' + symbol + ' from trading list?')) return;
+            
+            $.ajax({
+                url: '/api/symbols/remove',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ symbol: symbol }),
+                success: function(result) {
+                    if (result.success) {
+                        updateActiveSymbols();
+                    } else {
+                        alert(result.message || 'Failed to remove symbol');
+                    }
+                },
+                error: function() {
+                    alert('Error removing symbol');
+                }
+            });
+        });
+        
+        // Refresh symbols button
+        $('#refresh-symbols').click(function() {
+            $(this).find('i').addClass('animate-spin');
+            updateActiveSymbols();
+            setTimeout(function() {
+                $('#refresh-symbols i').removeClass('animate-spin');
+            }, 500);
+        });
+        
+        // Initial load of symbols
+        updateActiveSymbols();
+
+    </script>
+</body>
+</html>

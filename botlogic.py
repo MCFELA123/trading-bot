@@ -5,6 +5,18 @@ except ImportError:
     mt5 = None
     MT5_AVAILABLE = False
     print("WARNING: MetaTrader5 not available. MT5 features will be disabled.")
+    
+    # Create a mock mt5 object with timeframe constants for compatibility
+    class MockMT5:
+        TIMEFRAME_M1 = 1
+        TIMEFRAME_M5 = 5
+        TIMEFRAME_M15 = 15
+        TIMEFRAME_M30 = 30
+        TIMEFRAME_H1 = 60
+        TIMEFRAME_H4 = 240
+        TIMEFRAME_D1 = 1440
+    
+    mt5 = MockMT5()
 
 import pandas as pd
 import numpy as np

@@ -368,7 +368,7 @@ def is_valid_email(email):
     return re.match(pattern, email) is not None
 
 def send_verification_email(email, code, username):
-    """Send verification code email to user"""
+    """Send verification code email to user with timeout protection"""
     # Development mode - skip email and show code directly
     if Config.EMAIL_DEV_MODE:
         print(f"📧 [DEV MODE] Verification code for {email}: {code}")
@@ -380,37 +380,15 @@ def send_verification_email(email, code, username):
         return True, None, code  # Return code when email not configured
     
     try:
+        import socket
+        # Set socket timeout to prevent hanging
+        original_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(15)  # 15 second timeout for email
+        
         msg = Message(
             subject='🔐 TradingBot - Verify Your Email',
             recipients=[email]
         )
-        msg.html = f'''
-        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #0a1628 0%, #1a2332 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🤖 TradingBot</h1>
-            </div>
-            <div style="background: #ffffff; padding: 40px 30px; border: 1px solid #e2e8f0; border-top: none;">
-                <h2 style="color: #0a1628; margin-top: 0;">Welcome, {username}! 👋</h2>
-                <p style="color: #5b6b8b; font-size: 16px; line-height: 1.6;">
-                    Thank you for signing up for TradingBot. To complete your registration, please enter the verification code below:
-                </p>
-                <div style="background: #f7fafc; border: 2px dashed #0052ff; border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0;">
-                    <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #0052ff;">{code}</span>
-                </div>
-                <p style="color: #5b6b8b; font-size: 14px;">
-                    ⏰ This code will expire in <strong>10 minutes</strong>.
-                </p>
-                <p style="color: #5b6b8b; font-size: 14px;">
-                    If you didn't request this verification, please ignore this email.
-                </p>
-            </div>
-            <div style="background: #f7fafc; padding: 20px 30px; border-radius: 0 0 12px 12px; text-align: center; border: 1px solid #e2e8f0; border-top: none;">
-                <p style="color: #718096; font-size: 12px; margin: 0;">
-                    © 2026 TradingBot. Automated Trading Made Simple.
-                </p>
-            </div>
-        </div>
-        '''
         msg.body = f'''
 TradingBot - Email Verification
 
@@ -421,11 +399,19 @@ Your verification code is: {code}
 This code will expire in 10 minutes.
 
 If you didn't request this verification, please ignore this email.
+
+© 2026 TradingBot
         '''
+        
+        print(f"📧 Sending verification email to {email}...")
         mail.send(msg)
+        socket.setdefaulttimeout(original_timeout)  # Restore original timeout
+        print(f"✅ Email sent successfully to {email}")
         return True, None, None  # Email sent successfully
     except Exception as e:
+        socket.setdefaulttimeout(original_timeout)  # Restore original timeout
         print(f"❌ Failed to send verification email: {e}")
+        print(f"📋 Fallback: Returning code for manual verification")
         return False, str(e), code  # Return code on failure so user can still proceed
 
 # ---------------- LOGIN ----------------
